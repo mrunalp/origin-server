@@ -197,6 +197,8 @@ function create_standard_cart_env_vars {
 }
 
 function create_standard_env_vars {
+    echo "export OPENSHIFT_GEAR_DIR='$APP_DIR/'" > \
+                                      $APP_HOME/.env/OPENSHIFT_GEAR_DIR
     echo "export OPENSHIFT_LOG_DIR='$APP_DIR/logs/'" > \
                                       $APP_HOME/.env/OPENSHIFT_LOG_DIR
     echo "export OPENSHIFT_RUN_DIR='$APP_DIR/run/'" > \
@@ -270,8 +272,10 @@ function create_cartridge_instance_dir {
     fi
 }
 
+# FIXME: remove function when all cartridge configure hooks refactored
 function create_app_dir_symlink {
-    ln -s "$1" "$APP_DIR"
+    # ln -s "$1" "$APP_DIR"
+    :
 }
 
 # Create simple application start / stop script
@@ -536,7 +540,7 @@ function setup_basic_vars {
 
 function setup_app_dir_vars {
     APP_HOME="$GEAR_BASE_DIR/$uuid/"
-    APP_DIR=`echo $APP_HOME/$application | tr -s /`
+    APP_DIR=`echo $APP_HOME/$cartridge_type | tr -s /`
     APP_REPO_DIR="$APP_HOME/app-root/repo"
     APP_DATA_DIR="$APP_HOME/app-root/data"
 }
