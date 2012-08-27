@@ -209,7 +209,7 @@ create_standard_env_uservars
 create_standard_network_env_vars
 create_jboss_network_env_vars
 create_standard_repo_dir_env_var
-if [ -e $APP_HOME/$application/repo/.openshift/markers/java7 ];
+if [ -e $APP_HOME/app-root/runtime/repo/.openshift/markers/java7 ];
 then
 	JAVA_HOME=/etc/alternatives/java_sdk_1.7.0
 else
