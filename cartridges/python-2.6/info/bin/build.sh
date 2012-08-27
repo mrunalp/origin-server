@@ -24,11 +24,11 @@ fi
 if [ -f ${OPENSHIFT_REPO_DIR}setup.py ]
 then
     echo "setup.py found.  Setting up virtualenv"
-    cd ~/${OPENSHIFT_GEAR_NAME}/virtenv
+    cd ~/python-2.6/virtenv
 
     # Hack to fix symlink on rsync issue
     /bin/rm -f lib64
-    virtualenv --system-site-packages ~/${OPENSHIFT_GEAR_NAME}/virtenv
+    virtualenv --system-site-packages ~/python-2.6/virtenv
     . ./bin/activate
 	if [ -n "$OPENSHIFT_PYTHON_MIRROR" ]
 	then
@@ -36,7 +36,7 @@ then
 	else
 		python ${OPENSHIFT_REPO_DIR}setup.py develop
 	fi
-    virtualenv --relocatable ~/${OPENSHIFT_GEAR_NAME}/virtenv
+    virtualenv --relocatable ~/python-2.6/virtenv
 fi
 
 # Run build
