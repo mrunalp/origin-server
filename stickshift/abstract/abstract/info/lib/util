@@ -136,6 +136,25 @@ EOF
 
 }
 
+function convert_cart_name_to_namespace_id {
+    echo $1 | sed 's/[^a-zA-Z0-9_]//g' | tr '[a-z]' '[A-Z]'
+}
+
+function create_standard_cart_env_vars {
+    CART_NS=$(convert_cart_name_to_namespace_id $cartridge_type)
+    cinstancedir=$(get_cartridge_instance_dir)
+    echo "export OPENSHIFT_${CART_NS}_LOG_DIR='$cinstancedir/logs/'" > \
+                                      $APP_HOME/.env/OPENSHIFT_${CART_NS}_LOG_DIR
+    echo "export OPENSHIFT_${CART_NS}_RUN_DIR='$cinstancedir/run/'" > \
+                                      $APP_HOME/.env/OPENSHIFT_${CART_NS}_RUN_DIR
+    echo "export OPENSHIFT_${CART_NS}_RUNTIME_DIR='$cinstancedir/runtime/'" > \
+                                      $APP_HOME/.env/OPENSHIFT_${CART_NS}_RUNTIME_DIR
+    echo "export OPENSHIFT_${CART_NS}_CTL_SCRIPT='$cinstancedir/${application}_ctl.sh'" > \
+                                      $APP_HOME/.env/OPENSHIFT_${CART_NS}_CTL_SCRIPT
+    echo "export OPENSHIFT_GEAR_TYPE='$cartridge_type'" > \
+                                      $APP_HOME/.env/OPENSHIFT_GEAR_TYPE
+}
+
 function create_standard_env_vars {
     echo "export OPENSHIFT_LOG_DIR='$APP_DIR/logs/'" > \
                                       $APP_HOME/.env/OPENSHIFT_LOG_DIR
