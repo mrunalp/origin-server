@@ -5,16 +5,27 @@ echo "Starting application..."
     do
         . $env_var
     done
-    for cmd in `awk 'BEGIN { for (a in ENVIRON) if (a ~ /DB_CTL_SCRIPT$/) print ENVIRON[a] }'`
+    for cmd in `awk 'BEGIN {
+                            for (a in ENVIRON)
+                            if (a ~ /DB_CTL_SCRIPT$/)
+                            print ENVIRON[a] }'`
     do
-        $cmd start
+        $cmd start || error "Failed to start ${cmd}" 121
     done
-    for cmd in `awk 'BEGIN { for (a in ENVIRON) if ((a ~ /_CTL_SCRIPT$/) && !(a ~ /DB_CTL_SCRIPT$/) && (a != "OPENSHIFT_GEAR_CTL_SCRIPT")) print ENVIRON[a] }'`
+    for cmd in `awk 'BEGIN {
+                            for (a in ENVIRON)
+                                if ((a ~ /_CTL_SCRIPT$/) &&
+                                    !(a ~ /DB_CTL_SCRIPT$/) &&
+                                    !(a ~ /CART_CTL_SCRIPT$/))
+                                        print ENVIRON[a] }'`
     do
-        $cmd start
+        $cmd start || error "Failed to start ${cmd}" 121
     done
-    for cmd in `awk 'BEGIN { for (a in ENVIRON) if (a == "OPENSHIFT_GEAR_CTL_SCRIPT") print ENVIRON[a] }'`
+    for cmd in `awk 'BEGIN {
+                        for (a in ENVIRON)
+                            if (a ~ /CART_CTL_SCRIPT$/)
+                                print ENVIRON[a] }'`
     do
-        $cmd start
+        $cmd start || error "Failed to start ${cmd}" 121
     done
 echo "Done"

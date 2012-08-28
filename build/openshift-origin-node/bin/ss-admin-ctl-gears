@@ -3,6 +3,8 @@ lockfile=/var/lock/subsys/stickshift-gears
 numparallel=5
 timeout=90
 
+source /usr/libexec/stickshift/cartridges/abstract/info/lib/util
+
 # colors, use like: echo "${RED}FAILED!!!${NORM}"
 RED=$(echo -e "\033[31m")
 GREEN=$(echo -e "\033[32m")
@@ -57,11 +59,11 @@ function gearcarts() {
         do
             echo "$cmd"
         done
-        for cmd in `awk 'BEGIN { for (a in ENVIRON) if ((a ~ /_CTL_SCRIPT$/) && !(a ~ /DB_CTL_SCRIPT$/) && (a != "OPENSHIFT_GEAR_CTL_SCRIPT")) print ENVIRON[a] }'`
+        for cmd in `awk 'BEGIN { for (a in ENVIRON) if ((a ~ /_CTL_SCRIPT$/) && !(a ~ /DB_CTL_SCRIPT$/) && !(a ~ /CART_CTL_SCRIPT$/)) print ENVIRON[a] }'`
         do
             echo "$cmd"
         done
-        for cmd in `awk 'BEGIN { for (a in ENVIRON) if (a == "OPENSHIFT_GEAR_CTL_SCRIPT") print ENVIRON[a] }'`
+        for cmd in `awk 'BEGIN { for (a in ENVIRON) if (a ~ /CART_CTL_SCRIPT$/) print ENVIRON[a] }'`
         do
             echo "$cmd"
         done
@@ -134,8 +136,9 @@ startcart() {
     # GEARNAME=$1
     # CARTSCRIPT=$2
     uid=$(id -u "$1")
-    source /var/lib/stickshift/$1/.env/OPENSHIFT_RUN_DIR
-    if [ -f "${OPENSHIFT_RUN_DIR}/stop_lock" ]
+
+    FRAMEWORK_RUN_DIR=$(get_framework_run_dir $1)
+    if [ -f "${FRAMEWORK_RUN_DIR}/stop_lock" ]
     then
         echo "$1 is locked"
     else
@@ -154,7 +157,7 @@ startcart() {
         fi
         echo
     fi
-    unset OPENSHIFT_RUN_DIR
+    unset FRAMEWORK_RUN_DIR
 }
 
 stopcart() {

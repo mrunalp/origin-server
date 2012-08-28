@@ -38,9 +38,9 @@ CART_INFO_DIR=${CARTRIDGE_BASE_PATH}/embedded/$cartridge_type/info
 source ${CART_INFO_DIR}/lib/util
 source_if_exists "$APP_HOME/.env/OPENSHIFT_APP_NAME"
 
-if [ -f $APP_HOME/.env/OPENSHIFT_NOSQL_DB_TYPE ]; then
-    source $APP_HOME/.env/OPENSHIFT_NOSQL_DB_TYPE
-    client_error "Only 1 embedded database permitted - application currently has '$OPENSHIFT_NOSQL_DB_TYPE'"
+if [ -f $APP_HOME/.env/OPENSHIFT_MONGODB_DB_TYPE ]; then
+    source $APP_HOME/.env/OPENSHIFT_MONGODB_DB_TYPE
+    client_error "Only 1 embedded database permitted - application currently has '$OPENSHIFT_MONGODB_DB_TYPE'"
     exit 132
 fi
 
@@ -81,7 +81,7 @@ observe_setup_var_lib_dir "$APP_HOME/app-root/"
 observe_setup_var_lib_dir "$APP_DIR"
 observe_setup_var_lib_dir "$MONGODB_DIR"
 
-export OPENSHIFT_NOSQL_DB_CTL_SCRIPT="$MONGODB_DIR/${application}_mongodb_ctl.sh"
+export OPENSHIFT_MONGODB_DB_CTL_SCRIPT="$MONGODB_DIR/${application}_mongodb_ctl.sh"
 start_db
 
 # Generate a password with no o's O's or 0's
@@ -90,17 +90,18 @@ password=$(generate_password)
 #
 # Setup Environment Variables
 #
-echo "export OPENSHIFT_NOSQL_DB_USERNAME='admin'" > $APP_HOME/.env/OPENSHIFT_NOSQL_DB_USERNAME
-echo "export OPENSHIFT_NOSQL_DB_PASSWORD='$password'" > $APP_HOME/.env/OPENSHIFT_NOSQL_DB_PASSWORD
-echo "export OPENSHIFT_NOSQL_DB_TYPE='mongodb'" > $APP_HOME/.env/OPENSHIFT_NOSQL_DB_TYPE
-echo "export OPENSHIFT_NOSQL_DB_HOST='$IP'" > $APP_HOME/.env/OPENSHIFT_NOSQL_DB_HOST
-echo "export OPENSHIFT_NOSQL_DB_PORT='27017'" > $APP_HOME/.env/OPENSHIFT_NOSQL_DB_PORT
-echo "export OPENSHIFT_NOSQL_DB_URL='mongodb://admin:$password@$IP:27017/'" > $APP_HOME/.env/OPENSHIFT_NOSQL_DB_URL
-echo "export OPENSHIFT_NOSQL_DB_CTL_SCRIPT='$MONGODB_DIR/${application}_mongodb_ctl.sh'" > $APP_HOME/.env/OPENSHIFT_NOSQL_DB_CTL_SCRIPT
-echo "export OPENSHIFT_NOSQL_DB_MONGODB_20_DUMP='$CART_INFO_DIR/bin/mongodb_dump.sh'" > $APP_HOME/.env/OPENSHIFT_NOSQL_DB_MONGODB_20_DUMP
-echo "export OPENSHIFT_NOSQL_DB_MONGODB_20_DUMP_CLEANUP='$CART_INFO_DIR/bin/mongodb_cleanup.sh'" > $APP_HOME/.env/OPENSHIFT_NOSQL_DB_MONGODB_20_DUMP_CLEANUP
-echo "export OPENSHIFT_NOSQL_DB_MONGODB_20_RESTORE='$CART_INFO_DIR/bin/mongodb_restore.sh'" > $APP_HOME/.env/OPENSHIFT_NOSQL_DB_MONGODB_20_RESTORE
-echo "export OPENSHIFT_NOSQL_DB_MONGODB_20_EMBEDDED_TYPE='mongodb-2.2'" > $APP_HOME/.env/OPENSHIFT_NOSQL_DB_MONGODB_20_EMBEDDED_TYPE
+echo "export OPENSHIFT_MONGODB_DB_USERNAME='admin'" > $APP_HOME/.env/OPENSHIFT_MONGODB_DB_USERNAME
+echo "export OPENSHIFT_MONGODB_DB_PASSWORD='$password'" > $APP_HOME/.env/OPENSHIFT_MONGODB_DB_PASSWORD
+echo "export OPENSHIFT_MONGODB_DB_TYPE='mongodb'" > $APP_HOME/.env/OPENSHIFT_MONGODB_DB_TYPE
+echo "export OPENSHIFT_MONGODB_DB_HOST='$IP'" > $APP_HOME/.env/OPENSHIFT_MONGODB_DB_HOST
+echo "export OPENSHIFT_MONGODB_DB_PORT='27017'" > $APP_HOME/.env/OPENSHIFT_MONGODB_DB_PORT
+echo "export OPENSHIFT_MONGODB_DB_URL='mongodb://admin:$password@$IP:27017/'" > $APP_HOME/.env/OPENSHIFT_MONGODB_DB_URL
+echo "export OPENSHIFT_MONGODB_DB_CTL_SCRIPT='$MONGODB_DIR/${application}_mongodb_ctl.sh'" > $APP_HOME/.env/OPENSHIFT_MONGODB_DB_CTL_SCRIPT
+echo "export OPENSHIFT_MONGODB_DB_DUMP='$CART_INFO_DIR/bin/mongodb_dump.sh'" > $APP_HOME/.env/OPENSHIFT_MONGODB_DB_DUMP
+echo "export OPENSHIFT_MONGODB_DB_DUMP_CLEANUP='$CART_INFO_DIR/bin/mongodb_cleanup.sh'" > $APP_HOME/.env/OPENSHIFT_MONGODB_DB_DUMP_CLEANUP
+echo "export OPENSHIFT_MONGODB_DB_RESTORE='$CART_INFO_DIR/bin/mongodb_restore.sh'" > $APP_HOME/.env/OPENSHIFT_MONGODB_DB_RESTORE
+echo "export OPENSHIFT_MONGODB_DB_EMBEDDED_TYPE='mongodb-2.0'" > $APP_HOME/.env/OPENSHIFT_MONGODB_DB_EMBEDDED_TYPE
+echo "export OPENSHIFT_MONGODB_DB_LOG_DIR='$MONGODB_DIR/logs'" > $APP_HOME/.env/OPENSHIFT_MONGODB_DB_LOG_DIR
 
 ## Setup user
 source_if_exists "$APP_HOME/.env/OPENSHIFT_APP_NAME"
@@ -121,9 +122,9 @@ mongodb_port="27017"
 if is_a_scalable_app; then
    if $(dirname "$0")/expose-port "$@"; then
        source $APP_HOME/.env/OPENSHIFT_GEAR_DNS
-       source $APP_HOME/.env/OPENSHIFT_NOSQL_DB_PROXY_PORT
+       source $APP_HOME/.env/OPENSHIFT_MONGODB_DB_PROXY_PORT
        mongodb_ip=${OPENSHIFT_GEAR_DNS:-"$IP"}
-       mongodb_port=${OPENSHIFT_NOSQL_DB_PROXY_PORT:-27017}
+       mongodb_port=${OPENSHIFT_MONGODB_DB_PROXY_PORT:-27017}
    fi
 fi
 
@@ -136,9 +137,9 @@ client_result "   Database Name: $DB_NAME"
 client_result ""
 
 if is_a_scalable_app; then
-    source $APP_HOME/.env/OPENSHIFT_NOSQL_DB_HOST
+    source $APP_HOME/.env/OPENSHIFT_MONGODB_DB_HOST
     client_result "Connection URL: mongodb://$mongodb_ip:$mongodb_port/"
-    client_result "MongoDB gear-local connection URL: mongodb://$OPENSHIFT_NOSQL_DB_HOST:$mongodb_port/"
+    client_result "MongoDB gear-local connection URL: mongodb://$OPENSHIFT_MONGODB_DB_HOST:$mongodb_port/"
     client_result ""
 else
     client_result "Connection URL: mongodb://$IP:$mongodb_port/"
