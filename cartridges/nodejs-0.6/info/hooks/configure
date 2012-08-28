@@ -86,6 +86,7 @@ chown $user_id.$group_id -R "$APP_HOME"/.npm "$APP_HOME"/.npmrc  \
 #
 # Create environment variables
 #
+create_standard_cart_env_vars
 create_standard_env_vars
 create_standard_env_uservars
 create_standard_network_env_vars

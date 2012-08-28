@@ -8,7 +8,7 @@ source ${CARTRIDGE_BASE_PATH}/abstract/info/lib/db "db"
 
 function wait_to_start_db {
     i=0
-    while (( PGPASSWORD="$OPENSHIFT_DB_PASSWORD" psql -U $OPENSHIFT_DB_USERNAME -h $OPENSHIFT_DB_HOST -p $OPENSHIFT_DB_PORT -l > /dev/null 2>&1) || [ ! -f ${CART_INSTANCE_DIR}/pid/postgres.pid ]) && [ $i -lt 10 ]
+    while (( PGPASSWORD="$OPENSHIFT_POSTGRESQL_DB_PASSWORD" psql -U $OPENSHIFT_POSTGRESQL_DB_USERNAME -h $OPENSHIFT_POSTGRESQL_DB_HOST -p $OPENSHIFT_POSTGRESQL_DB_PORT -l > /dev/null 2>&1) || [ ! -f ${CART_INSTANCE_DIR}/pid/postgres.pid ]) && [ $i -lt 10 ]
     do
         sleep 1
         i=$(($i + 1))
@@ -17,7 +17,7 @@ function wait_to_start_db {
 
 
 function wait_to_start_db_as_user {
-    if [ -n "$OPENSHIFT_DB_USERNAME" ]
+    if [ -n "$OPENSHIFT_POSTGRESQL_DB_USERNAME" ]
     then
         i=0
         sleep 1

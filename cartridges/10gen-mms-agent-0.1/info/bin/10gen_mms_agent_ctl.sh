@@ -20,7 +20,7 @@ validate_run_as_user
 
 case "$1" in
     start)
-        if [ -f ${OPENSHIFT_10GEN_MMS_AGENT_GEAR_DIR}run/stop_lock ]
+        if [ -f ${OPENSHIFT_10GENMMSAGENT_RUN_DIR}/stop_lock ]
         then
             echo "Application is explicitly stopped!  Use 'rhc app cartridge start -a ${OPENSHIFT_GEAR_NAME} -c 10gen-mms-agent-0.1' to start back up." 1>&2
             exit 0
@@ -35,26 +35,26 @@ case "$1" in
         # Remove the compiled versions of the settings.py file and reset the mms credentials from the file in repo
         # This is required so that any user changes to credentials in this file can be picked up and recompiled
         #
-        rm -f ${OPENSHIFT_10GEN_MMS_AGENT_GEAR_DIR}mms-agent/settings.pyc ${OPENSHIFT_10GEN_MMS_AGENT_GEAR_DIR}mms-agent/settings.pyo
+        rm -f ${OPENSHIFT_10GENMMSAGENT_CART_DIR}mms-agent/settings.pyc ${OPENSHIFT_10GENMMSAGENT_CART_DIR}mms-agent/settings.pyo
         
         new_mms_key_line=`cat ${OPENSHIFT_REPO_DIR}/.openshift/mms/settings.py | grep -E "^mms_key\s*=.*"`
         new_secret_key_line=`cat ${OPENSHIFT_REPO_DIR}/.openshift/mms/settings.py | grep -E "^secret_key\s*=.*"`
-        sed -i "s/^mms_key\s*=.*/${new_mms_key_line}/g" ${OPENSHIFT_10GEN_MMS_AGENT_GEAR_DIR}mms-agent/settings.py
-        sed -i "s/^secret_key\s*=.*/${new_secret_key_line}/g" ${OPENSHIFT_10GEN_MMS_AGENT_GEAR_DIR}mms-agent/settings.py
+        sed -i "s/^mms_key\s*=.*/${new_mms_key_line}/g" ${OPENSHIFT_10GENMMSAGENT_CART_DIR}mms-agent/settings.py
+        sed -i "s/^secret_key\s*=.*/${new_secret_key_line}/g" ${OPENSHIFT_10GENMMSAGENT_CART_DIR}mms-agent/settings.py
 
 
-        nohup python ${OPENSHIFT_10GEN_MMS_AGENT_GEAR_DIR}mms-agent/${OPENSHIFT_GEAR_UUID}_agent.py > ${OPENSHIFT_10GEN_MMS_AGENT_GEAR_DIR}logs/agent.log 2>&1 &
-        echo $! > ${OPENSHIFT_10GEN_MMS_AGENT_GEAR_DIR}run/mms-agent.pid
+        nohup python ${OPENSHIFT_10GENMMSAGENT_CART_DIR}mms-agent/${OPENSHIFT_GEAR_UUID}_agent.py > ${OPENSHIFT_10GENMMSAGENT_LOG_DIR}/agent.log 2>&1 &
+        echo $! > ${OPENSHIFT_10GENMMSAGENT_RUN_DIR}/mms-agent.pid
         run_user_hook post_start_10gen_mms_agent-0.1
     ;;
 
     graceful-stop|stop)
-        if [ -f ${OPENSHIFT_10GEN_MMS_AGENT_GEAR_DIR}run/mms-agent.pid ]
+        if [ -f ${OPENSHIFT_10GENMMSAGENT_RUN_DIR}/mms-agent.pid ]
         then
             src_user_hook pre_stop_10gen_mms_agent-0.1
-            mms_agent_pid=`cat ${OPENSHIFT_10GEN_MMS_AGENT_GEAR_DIR}run/mms-agent.pid 2> /dev/null`
+            mms_agent_pid=`cat ${OPENSHIFT_10GENMMSAGENT_RUN_DIR}/mms-agent.pid 2> /dev/null`
             kill -9 $mms_agent_pid > /dev/null
-            rm -f ${OPENSHIFT_10GEN_MMS_AGENT_GEAR_DIR}run/mms-agent.pid > /dev/null
+            rm -f ${OPENSHIFT_10GENMMSAGENT_RUN_DIR}/mms-agent.pid > /dev/null
             run_user_hook post_stop_10gen_mms_agent-0.1
         else
             if ps -ef | grep ${OPENSHIFT_GEAR_UUID}_agent.py | grep -qv grep > /dev/null 2>&1; then

@@ -182,7 +182,7 @@ end
 # Verifies the existence of an exported source tree associated with
 # the current application.
 Then /^the application source tree will( not)? exist$/ do | negate |
-  app_root = "#{$home_root}/#{@gear.uuid}/#{@app.name}"
+  app_root = "#{$home_root}/#{@gear.uuid}/#{@cart.name}"
 
   # TODO - need to check permissions and SELinux labels
 
@@ -198,7 +198,7 @@ end
 # Verifies the existence of application log files associated with the
 # current application.
 Then /^the application log files will( not)? exist$/ do | negate |
-  log_dir_path = "#{$home_root}/#{@gear.uuid}/#{@app.name}/logs"
+  log_dir_path = "#{$home_root}/#{@gear.uuid}/#{@cart.name}/logs"
 
   $logger.info("Checking for log dir at #{log_dir_path}")
 

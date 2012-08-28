@@ -34,19 +34,19 @@ disable_cgroups
 MMS_DIR=`get_cartridge_instance_dir "$cartridge_type" | tr -s /` # ensure that there aren't double /'s
 MMS_CTL_SCRIPT="$MMS_DIR/${application}_10gen_mms_agent_ctl.sh"
 
-if [ ! -f "$APP_HOME/.env/OPENSHIFT_NOSQL_DB_USERNAME" ] ||
-   [ ! -f "$APP_HOME/.env/OPENSHIFT_NOSQL_DB_PASSWORD" ] ||
-   [ ! -f "$APP_HOME/.env/OPENSHIFT_NOSQL_DB_HOST" ] ||
-   [ ! -f "$APP_HOME/.env/OPENSHIFT_NOSQL_DB_TYPE" ] ||
-   [ ! -f "$APP_HOME/.env/OPENSHIFT_NOSQL_DB_PORT" ] 
+if [ ! -f "$APP_HOME/.env/OPENSHIFT_MONGODB_DB_USERNAME" ] ||
+   [ ! -f "$APP_HOME/.env/OPENSHIFT_MONGODB_DB_PASSWORD" ] ||
+   [ ! -f "$APP_HOME/.env/OPENSHIFT_MONGODB_DB_HOST" ] ||
+   [ ! -f "$APP_HOME/.env/OPENSHIFT_MONGODB_DB_TYPE" ] ||
+   [ ! -f "$APP_HOME/.env/OPENSHIFT_MONGODB_DB_PORT" ] 
 then
    client_error ""
    client_error "MongoDB must be embedded before the 10gen MMS Agent"
    client_error ""
    exit 137
 else
-   source "$APP_HOME/.env/OPENSHIFT_NOSQL_DB_TYPE"
-   if [ $OPENSHIFT_NOSQL_DB_TYPE != "mongodb" ]; then
+   source "$APP_HOME/.env/OPENSHIFT_MONGODB_DB_TYPE"
+   if [ $OPENSHIFT_MONGODB_DB_TYPE != "mongodb" ]; then
       client_error ""
       client_error "MongoDB must be embedded before the 10gen MMS Agent"
       client_error ""
@@ -101,8 +101,7 @@ observe_setup_var_lib_dir "$MMS_DIR"
 #
 # Create environment variables. This MUST be before starting 10gen-mms-agent as the CTL script relies on these.
 #
-echo "export OPENSHIFT_10GEN_MMS_AGENT_GEAR_DIR='$MMS_DIR/'" > $APP_HOME/.env/OPENSHIFT_10GEN_MMS_AGENT_GEAR_DIR
-echo "export OPENSHIFT_10GEN_MMS_AGENT_CTL_SCRIPT='$MMS_CTL_SCRIPT'" > $APP_HOME/.env/OPENSHIFT_10GEN_MMS_AGENT_CTL_SCRIPT
+create_standard_cart_env_vars
 
 #
 # Start the server

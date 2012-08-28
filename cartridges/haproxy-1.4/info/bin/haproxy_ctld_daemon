@@ -8,10 +8,10 @@ options = {
     :backgrace => true,
     :ontop => false,
     :log_output => true,
-    :log_dir => "#{ENV['OPENSHIFT_LOG_DIR']}",
+    :log_dir => "#{ENV['OPENSHIFT_HAPROXY_LOG_DIR']}",
     :log_output => true,
     :dir_mode => :normal,
-    :dir => "#{ENV['OPENSHIFT_RUN_DIR']}",
+    :dir => "#{ENV['OPENSHIFT_HAPROXY_RUN_DIR']}",
     :multiple => false,
     
 }
