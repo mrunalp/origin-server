@@ -15,7 +15,11 @@ then
     exit 1
 fi
 
-APP_JBOSS="$OPENSHIFT_GEAR_DIR"/${OPENSHIFT_GEAR_TYPE}
+CART_NAME=$(get_cartridge_name_from_path)
+CART_NS=$(get_cartridge_namespace_from_path)
+CART_DIR=$(get_env_var_dynamic "OPENSHIFT_${CART_NS}_CART_DIR")
+
+APP_JBOSS=${CART_DIR}/${CART_NAME}
 APP_JBOSS_TMP_DIR="$APP_JBOSS"/standalone/tmp
 APP_JBOSS_BIN_DIR="$APP_JBOSS"/bin
 
@@ -66,7 +70,7 @@ function start_app() {
     fi
 
     _state=`get_app_state`
-    if [ -f $OPENSHIFT_GEAR_DIR/run/stop_lock -o idle = "$_state" ]; then
+    if [ -f $APP_JBOSS/run/stop_lock -o idle = "$_state" ]; then
         echo "Application is explicitly stopped!  Use 'rhc app start -a ${OPENSHIFT_GEAR_NAME}' to start back up." 1>&2
     else
         # Check for running app
@@ -120,7 +124,7 @@ function threaddump() {
 }
 
 
-JBOSS_PID_FILE="$OPENSHIFT_GEAR_DIR/run/jboss.pid"
+JBOSS_PID_FILE="$CART_DIR/run/jboss.pid"
 
 case "$1" in
     start)

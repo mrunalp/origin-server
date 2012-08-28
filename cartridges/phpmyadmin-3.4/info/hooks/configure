@@ -34,10 +34,10 @@ disable_cgroups
 PHPMYADMIN_DIR=$(get_cartridge_instance_dir "$cartridge_type")
 PHPMYADMIN_CTL_SCRIPT="$PHPMYADMIN_DIR/${application}_phpmyadmin_ctl.sh"
 
-if [ ! -f "$APP_HOME/.env/OPENSHIFT_DB_USERNAME" ] ||
-   [ ! -f "$APP_HOME/.env/OPENSHIFT_DB_PASSWORD" ] ||
-   [ ! -f "$APP_HOME/.env/OPENSHIFT_DB_HOST" ] ||
-   [ ! -f "$APP_HOME/.env/OPENSHIFT_DB_PORT" ] ||
+if [ ! -f "$APP_HOME/.env/OPENSHIFT_MYSQL_DB_USERNAME" ] ||
+   [ ! -f "$APP_HOME/.env/OPENSHIFT_MYSQL_DB_PASSWORD" ] ||
+   [ ! -f "$APP_HOME/.env/OPENSHIFT_MYSQL_DB_HOST" ] ||
+   [ ! -f "$APP_HOME/.env/OPENSHIFT_MYSQL_DB_PORT" ] ||
    [ ! -d "$APP_HOME/mysql-5.1" ]
 then
     client_error ""
@@ -102,9 +102,8 @@ observe_setup_var_lib_dir "$PHPMYADMIN_DIR"
 #
 # Create environment variables. This MUST be before starting phpmyadmin as the CTL script relies on these.
 #
+create_standard_cart_env_vars
 echo "export OPENSHIFT_PHPMYADMIN_IP='$IP'" > $APP_HOME/.env/OPENSHIFT_PHPMYADMIN_IP
-echo "export OPENSHIFT_PHPMYADMIN_GEAR_DIR='$PHPMYADMIN_DIR/'" > $APP_HOME/.env/OPENSHIFT_PHPMYADMIN_GEAR_DIR
-echo "export OPENSHIFT_PHPMYADMIN_CTL_SCRIPT='$PHPMYADMIN_CTL_SCRIPT'" > $APP_HOME/.env/OPENSHIFT_PHPMYADMIN_CTL_SCRIPT
 
 
 #
@@ -122,22 +121,22 @@ restart_httpd_graceful
 
 
 # Grab the env vars so we can print them
-. $APP_HOME/.env/OPENSHIFT_DB_USERNAME
-. $APP_HOME/.env/OPENSHIFT_DB_PASSWORD
+. $APP_HOME/.env/OPENSHIFT_MYSQL_DB_USERNAME
+. $APP_HOME/.env/OPENSHIFT_MYSQL_DB_PASSWORD
 . $APP_HOME/.env/OPENSHIFT_GEAR_DNS
 
 
 client_result ""
 client_result "phpMyAdmin 3.4 added.  Please make note of these MySQL credentials again:"
 client_result ""
-client_result "   Root User: $OPENSHIFT_DB_USERNAME"
-client_result "   Root Password: $OPENSHIFT_DB_PASSWORD"
+client_result "   Root User: $OPENSHIFT_MYSQL_DB_USERNAME"
+client_result "   Root Password: $OPENSHIFT_MYSQL_DB_PASSWORD"
 client_result ""
 client_result "URL: https://$OPENSHIFT_GEAR_DNS/phpmyadmin/"
 
 cart_props "connection_url=https://$OPENSHIFT_GEAR_DNS/phpmyadmin/"
-cart_props "username=$OPENSHIFT_DB_USERNAME"
-cart_props "password=$OPENSHIFT_DB_PASSWORD"
+cart_props "username=$OPENSHIFT_MYSQL_DB_USERNAME"
+cart_props "password=$OPENSHIFT_MYSQL_DB_PASSWORD"
 
 set_app_info "URL: https://$OPENSHIFT_GEAR_DNS/phpmyadmin/"
 enable_cgroups
