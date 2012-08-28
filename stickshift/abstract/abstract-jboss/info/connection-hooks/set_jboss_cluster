@@ -5,18 +5,21 @@
 # Exit on any errors
 set -e
 
+source "/etc/stickshift/stickshift-node.conf"
+source ${CARTRIDGE_BASE_PATH}/abstract/info/lib/util
+
+CART_NS=$(get_cartridge_namespace_from_path)
+
 list=
 kvargs=$(echo "${@:4}" | tr -d "\n" )
 for arg in $kvargs; do
     ip=$(echo "$arg" | cut -f 2 -d '=' | tr -d "'")
     ip=`echo "$ip" | sed "s/:/[/g"`
     if [ -z "$list" ]; then
-        list="export OPENSHIFT_JBOSS_CLUSTER=$ip]"
+        list="export OPENSHIFT_${CART_NS}_CLUSTER=$ip]"
     else
         list="$list,$ip]"
     fi
 done
 
-echo "$list" > /var/lib/stickshift/$3/.env/OPENSHIFT_JBOSS_CLUSTER
-
-
+echo "$list" > /var/lib/stickshift/$3/.env/OPENSHIFT_${CART_NS}_CLUSTER

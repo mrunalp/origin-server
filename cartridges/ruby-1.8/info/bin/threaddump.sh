@@ -21,7 +21,7 @@ if [ "$PID" = "" ]; then
         _state=`cat "$_state_file"`
     fi
 
-    if [ -f ${OPENSHIFT_GEAR_DIR}run/stop_lock -o stopped = "$_state" ]; then
+    if [ -f ${OPENSHIFT_RUBY_RUN_DIR}/stop_lock -o stopped = "$_state" ]; then
         echo "Application is stopped.  You must start the application and access it by its URL (http://${OPENSHIFT_GEAR_DNS}) before you can take a thread dump."
     else
         # idle = "$_state"
