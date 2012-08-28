@@ -406,8 +406,9 @@ module StickShift
     #   # ~/.tmp/
     #   # ~/.sandbox/$uuid
     #   # ~/.env/
-    #   # APP_UUID, GEAR_UUID, APP_NAME, APP_DNS, HOMEDIR, DATA_DIR, GEAR_DIR, \
-    #   #   GEAR_DNS, GEAR_NAME, GEAR_CTL_SCRIPT, PATH, REPO_DIR, TMP_DIR
+    #   # APP_UUID, GEAR_UUID, APP_NAME, APP_DNS, HOMEDIR, DATA_DIR, \
+    #   #   GEAR_DNS, GEAR_NAME, GEAR_CTL_SCRIPT, PATH, REPO_DIR, TMP_DIR, \
+    #   #   HISTFILE
     #   # ~/app-root
     #   # ~/app-root/data
     #   # ~/app-root/runtime/repo
@@ -462,7 +463,6 @@ module StickShift
       FileUtils.chown(@uuid, @uuid, profile, :verbose => @debug)
 
 
-      add_env_var("GEAR_DIR", geardir, true)
       add_env_var("GEAR_DNS",
                   "#{@container_name}-#{@namespace}.#{@config.get("CLOUD_DOMAIN")}",
                   true)

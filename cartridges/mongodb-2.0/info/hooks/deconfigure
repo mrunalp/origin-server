@@ -45,11 +45,8 @@ source_if_exists "$APP_HOME/.env/OPENSHIFT_GEAR_TYPE"
 
 
 # For non-embedded (dedicated) mongo gear, destroy the git repo and stop app.
-if [ "mongodb-2.0" = "$OPENSHIFT_GEAR_TYPE" ]; then
+if only_cart_on_gear $cartridge_type; then
    $CART_INFO_DIR/hooks/conceal-port "$application" "$namespace" "$uuid"
-
-   # Destroy git repo and stop app.
-   destroy_git_repo $application $uuid
 
    enable_stale_detection
 
@@ -57,11 +54,11 @@ if [ "mongodb-2.0" = "$OPENSHIFT_GEAR_TYPE" ]; then
 fi
 
 # Stop mongodb before we remove all the variables.
-source_if_exists "$APP_HOME/.env/OPENSHIFT_NOSQL_DB_USERNAME"
-source_if_exists "$APP_HOME/.env/OPENSHIFT_NOSQL_DB_PASSWORD"
-source_if_exists "$APP_HOME/.env/OPENSHIFT_NOSQL_DB_HOST"
-source_if_exists "$APP_HOME/.env/OPENSHIFT_NOSQL_DB_PORT"
-source_if_exists "$APP_HOME/.env/OPENSHIFT_NOSQL_DB_CTL_SCRIPT"
+source_if_exists "$APP_HOME/.env/OPENSHIFT_MONGODB_DB_USERNAME"
+source_if_exists "$APP_HOME/.env/OPENSHIFT_MONGODB_DB_PASSWORD"
+source_if_exists "$APP_HOME/.env/OPENSHIFT_MONGODB_DB_HOST"
+source_if_exists "$APP_HOME/.env/OPENSHIFT_MONGODB_DB_PORT"
+source_if_exists "$APP_HOME/.env/OPENSHIFT_MONGODB_DB_CTL_SCRIPT"
 
 stop_db
 
@@ -70,15 +67,12 @@ confirm_pid_gone "${MONGODB_DIR}/pid/mongodb.pid"
 #
 # Remove environment variables
 #
-/bin/rm -f $APP_HOME/.env/OPENSHIFT_NOSQL_DB_USERNAME $APP_HOME/.env/OPENSHIFT_NOSQL_DB_PASSWORD $APP_HOME/.env/OPENSHIFT_NOSQL_DB_TYPE $APP_HOME/.env/OPENSHIFT_NOSQL_DB_HOST $APP_HOME/.env/OPENSHIFT_NOSQL_DB_PORT $APP_HOME/.env/OPENSHIFT_NOSQL_DB_SOCKET $APP_HOME/.env/OPENSHIFT_NOSQL_DB_URL $APP_HOME/.env/OPENSHIFT_NOSQL_DB_CTL_SCRIPT $APP_HOME/.env/OPENSHIFT_NOSQL_DB_MONGODB_20_DUMP $APP_HOME/.env/OPENSHIFT_NOSQL_DB_MONGODB_20_DUMP_CLEANUP $APP_HOME/.env/OPENSHIFT_NOSQL_DB_MONGODB_20_RESTORE $APP_HOME/.env/OPENSHIFT_NOSQL_DB_MONGODB_20_EMBEDDED_TYPE
+/bin/rm -f $APP_HOME/.env/OPENSHIFT_MONGODB_DB_USERNAME $APP_HOME/.env/OPENSHIFT_MONGODB_DB_PASSWORD $APP_HOME/.env/OPENSHIFT_MONGODB_DB_TYPE $APP_HOME/.env/OPENSHIFT_MONGODB_DB_HOST $APP_HOME/.env/OPENSHIFT_MONGODB_DB_PORT $APP_HOME/.env/OPENSHIFT_MONGODB_DB_SOCKET $APP_HOME/.env/OPENSHIFT_MONGODB_DB_URL $APP_HOME/.env/OPENSHIFT_MONGODB_DB_CTL_SCRIPT $APP_HOME/.env/OPENSHIFT_MONGODB_DB_DUMP $APP_HOME/.env/OPENSHIFT_MONGODB_DB_DUMP_CLEANUP $APP_HOME/.env/OPENSHIFT_MONGODB_DB_RESTORE $APP_HOME/.env/OPENSHIFT_MONGODB_DB_EMBEDDED_TYPE
 
 runcon -l s0-s0:c0.c1023 rm -rf "$MONGODB_DIR" "$MONGODB_DIR/${application}_mongodb_ctl.sh"
 
 # For non-embedded (dedicated) mongo gear, destroy the gear.
-if [ "mongodb-2.0" = "$OPENSHIFT_GEAR_TYPE" ]; then
-    # Blow away the directories.
-    rm_app_dir
-
+if only_cart_on_gear $cartridge_type; then
     # Remove apache vhost configuration.
     rm_httpd_proxy $uuid $namespace $application
 fi

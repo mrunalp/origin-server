@@ -23,7 +23,6 @@ validate_run_as_user
 
 isrunning() {
     # Check for running app
-    #pid=`cat ${OPENSHIFT_RUN_DIR}jenkins.pid 2> /dev/null`
     pid=`pgrep -f ".*java.*-jar.*jenkins.war.*--httpListenAddress=${OPENSHIFT_INTERNAL_IP}.*" 2> /dev/null`
     if [ -n "$pid" ]
     then
@@ -49,7 +48,7 @@ start_jenkins() {
         -jar /usr/lib/jenkins/jenkins.war \
         --ajp13Port=-1 \
         --controlPort=-1 \
-        --logfile=$OPENSHIFT_LOG_DIR/jenkins.log \
+        --logfile=$OPENSHIFT_JENKINS_LOG_DIR/jenkins.log \
         --daemon \
         --httpPort=8080 \
         --debug=5 \
@@ -73,7 +72,7 @@ stop_jenkins() {
 case "$1" in
     start)
         _state=`get_app_state`
-        if [ -f ${OPENSHIFT_GEAR_DIR}run/stop_lock -o idle = "$_state" ]
+        if [ -f ${OPENSHIFT_JENKINS_RUN_DIR}/stop_lock -o idle = "$_state" ]
         then
             echo "Application is explicitly stopped!  Use 'rhc app start -a ${OPENSHIFT_GEAR_NAME}' to start back up." 1>&2
             exit 0
