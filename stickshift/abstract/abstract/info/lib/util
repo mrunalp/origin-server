@@ -141,7 +141,7 @@ EOF
 # an easy way to deal with nested expansion.
 function get_env_var_dynamic {
   VAR_NAME=$1
-  eval y=\$VAR_NAME; echo $y
+  eval y=\$${VAR_NAME}; echo $y
 }
 
 
