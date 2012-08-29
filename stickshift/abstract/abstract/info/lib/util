@@ -136,6 +136,33 @@ EOF
 
 }
 
+# Echo's the value of the given variable name. The
+# value is obtained using an eval to allow callers
+# an easy way to deal with nested expansion.
+function get_env_var_dynamic {
+  VAR_NAME=$1
+  eval y=\$VAR_NAME; echo $y
+}
+
+
+# Infers the current cartridge name from the current
+# script directory.
+function get_cartridge_name_from_path {
+    CART_PATH=$(cd -P $(dirname "$0")/../.. && pwd)
+    CART_NAME=$(basename ${CART_PATH})
+    echo $CART_NAME
+}
+
+
+# A convenience wrapper which will determine the current
+# cartridge name and use that name to derive a cartridge
+# namespace value.
+function get_cartridge_namespace_from_path {
+    CART_NAME=$(get_cartridge_name_from_path)
+    CART_NS=$(convert_cart_name_to_namespace_id ${CART_NAME})
+    echo $CART_NS
+}
+
 function convert_cart_name_to_namespace_id {
     echo $1 | sed 's/[^a-zA-Z0-9_]//g' | tr '[a-z]' '[A-Z]'
 }
