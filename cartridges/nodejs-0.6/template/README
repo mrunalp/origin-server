@@ -33,7 +33,7 @@ Environment Variables
 OpenShift provides several environment variables to reference for ease
 of use.  The following list are some common variables but far from exhaustive:
     process.env.OPENSHIFT_GEAR_NAME  - Application name
-    process.env.OPENSHIFT_NODEJS06_DIR   - Application dir
+    process.env.OPENSHIFT_NODEJS06_CART_DIR   - Application dir
     process.env.OPENSHIFT_DATA_DIR  - For persistent storage (between pushes)
     process.env.OPENSHIFT_TMP_DIR   - Temp storage (unmodified files deleted after 10 days)
 

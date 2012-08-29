@@ -35,14 +35,14 @@ function start_app {
                             for (a in ENVIRON)
                                 if ((a ~ /_CTL_SCRIPT$/) &&
                                     !(a ~ /DB_CTL_SCRIPT$/) &&
-                                    (a != "OPENSHIFT_GEAR_CTL_SCRIPT"))
+                                    !(a ~ /CART_CTL_SCRIPT$/))
                                         print ENVIRON[a] }'`
     do
         run_as_user "$cmd start" || error "Failed to start ${cmd}" 121
     done
     for cmd in `awk 'BEGIN {
                         for (a in ENVIRON)
-                            if (a == "OPENSHIFT_GEAR_CTL_SCRIPT")
+                            if (a ~ /CART_CTL_SCRIPT$/)
                                 print ENVIRON[a] }'`
     do
         run_as_user "$cmd start" || error "Failed to start ${cmd}" 121
@@ -59,7 +59,7 @@ function stop_app {
 
     for cmd in `awk 'BEGIN {
                         for (a in ENVIRON)
-                            if (a == "OPENSHIFT_GEAR_CTL_SCRIPT")
+                            if (a ~ /CART_CTL_SCRIPT$/)
                                 print ENVIRON[a] }'`
     do
         run_as_user "$cmd stop" || echo "Failed to stop ${cmd}" 1>&2
@@ -68,7 +68,7 @@ function stop_app {
                         for (a in ENVIRON)
                         if ((a ~ /_CTL_SCRIPT$/) &&
                             !(a ~ /DB_CTL_SCRIPT$/) &&
-                            (a != "OPENSHIFT_GEAR_CTL_SCRIPT"))
+                            !(a ~ /CART_CTL_SCRIPT$/))
                                 print ENVIRON[a] }'`
     do
         run_as_user "$cmd stop" || echo "Failed to stop ${cmd}" 1>&2
@@ -175,14 +175,16 @@ function create_standard_cart_env_vars {
     cinstancedir=$(get_cartridge_instance_dir)
     echo "export OPENSHIFT_${CART_NS}_LOG_DIR='$cinstancedir/logs/'" > \
                                       $APP_HOME/.env/OPENSHIFT_${CART_NS}_LOG_DIR
+    echo "export OPENSHIFT_${CART_NS}_TMP_DIR='$cinstancedir/tmp/'" > \
+                                      $APP_HOME/.env/OPENSHIFT_${CART_NS}_TMP_DIR
     echo "export OPENSHIFT_${CART_NS}_RUN_DIR='$cinstancedir/run/'" > \
                                       $APP_HOME/.env/OPENSHIFT_${CART_NS}_RUN_DIR
     echo "export OPENSHIFT_${CART_NS}_RUNTIME_DIR='$cinstancedir/runtime/'" > \
                                       $APP_HOME/.env/OPENSHIFT_${CART_NS}_RUNTIME_DIR
-    echo "export OPENSHIFT_${CART_NS}_CTL_SCRIPT='$cinstancedir/${application}_ctl.sh'" > \
-                                      $APP_HOME/.env/OPENSHIFT_${CART_NS}_CTL_SCRIPT
-    echo "export OPENSHIFT_${CART_NS}_DIR='$cinstancedir/'" > \
-                                      $APP_HOME/.env/OPENSHIFT_${CART_NS}_DIR
+    echo "export OPENSHIFT_${CART_NS}_CART_CTL_SCRIPT='$cinstancedir/${application}_ctl.sh'" > \
+                                      $APP_HOME/.env/OPENSHIFT_${CART_NS}_CART_CTL_SCRIPT
+    echo "export OPENSHIFT_${CART_NS}_CART_DIR='$cinstancedir/'" > \
+                                      $APP_HOME/.env/OPENSHIFT_${CART_NS}_CART_DIR
     echo "export OPENSHIFT_GEAR_TYPE='$cartridge_type'" > \
                                       $APP_HOME/.env/OPENSHIFT_GEAR_TYPE
 }
