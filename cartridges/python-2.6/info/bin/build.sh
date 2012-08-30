@@ -18,7 +18,7 @@ fi
 if [ -f "${OPENSHIFT_REPO_DIR}/.openshift/markers/force_clean_build" ]
 then
     echo ".openshift/markers/force_clean_build found!  Recreating virtenv" 1>&2
-    rm -rf "${OPENSHIFT_PYTHON26_CART_DIR}"/virtenv/*
+    rm -rf "${OPENSHIFT_PYTHON_CART_DIR}"/virtenv/*
 fi
 
 if [ -f ${OPENSHIFT_REPO_DIR}setup.py ]

@@ -6,4 +6,4 @@ do
     . $f
 done
 
-export APPDIR="${OPENSHIFT_PYTHON26_CART_DIR}"
+export APPDIR="${OPENSHIFT_PYTHON_CART_DIR}"
