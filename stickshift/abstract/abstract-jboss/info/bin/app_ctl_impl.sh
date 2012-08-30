@@ -17,7 +17,7 @@ fi
 
 CART_NAME=$(get_cartridge_name_from_path)
 CART_NS=$(get_cartridge_namespace_from_path)
-CART_DIR=$(get_env_var_dynamic "OPENSHIFT_${CART_NS}_DIR")
+CART_DIR=$(get_env_var_dynamic "OPENSHIFT_${CART_NS}_CART_DIR")
 
 APP_JBOSS=${CART_DIR}/${CART_NAME}
 APP_JBOSS_TMP_DIR="$APP_JBOSS"/standalone/tmp
