@@ -15,8 +15,8 @@ DEPRECATED
 }
 
 function _is_node_service_running() {
-    if [ -f $OPENSHIFT_NODEJS06_CART_DIR/run/node.pid ]; then
-        node_pid=$( cat $OPENSHIFT_NODEJS06_CART_DIR/run/node.pid 2> /dev/null )
+    if [ -f $OPENSHIFT_NODEJS_CART_DIR/run/node.pid ]; then
+        node_pid=$( cat $OPENSHIFT_NODEJS_CART_DIR/run/node.pid 2> /dev/null )
         myid=$( id -u )
         if `ps --pid $node_pid 2>&1 | grep node > /dev/null 2>&1`  ||  \
            `pgrep -x node -u $myid > /dev/null 2>&1`; then
@@ -43,7 +43,7 @@ function _status_node_service() {
 
 function _start_node_service() {
     _state=`get_app_state`
-    if [ -f $OPENSHIFT_NODEJS06_CART_DIR/run/stop_lock -o idle = "$_state" ]; then
+    if [ -f $OPENSHIFT_NODEJS_CART_DIR/run/stop_lock -o idle = "$_state" ]; then
         echo "Application is explicitly stopped!  Use 'rhc app start -a ${OPENSHIFT_GEAR_NAME}' to start back up." 1>&2
         return 0
     else
@@ -60,7 +60,7 @@ function _start_node_service() {
 
     src_user_hook pre_start_${CARTRIDGE_TYPE}
 
-    envf="$OPENSHIFT_NODEJS06_CART_DIR/conf/node.env"
+    envf="$OPENSHIFT_NODEJS_CART_DIR/conf/node.env"
     logf="$OPENSHIFT_NODEJS06_LOG_DIR/node.log"
 
     #  Source environment if it exists.
@@ -95,7 +95,7 @@ function _start_node_service() {
     npid=$!
     popd > /dev/null
     if [ $ret -eq 0 ]; then
-        echo "$npid" > "$OPENSHIFT_NODEJS06_CART_DIR/run/node.pid"
+        echo "$npid" > "$OPENSHIFT_NODEJS_CART_DIR/run/node.pid"
         run_user_hook post_start_${CARTRIDGE_TYPE}
     else
         echo "Application '$OPENSHIFT_GEAR_NAME' failed to start - $ret" 1>&2
@@ -105,8 +105,8 @@ function _start_node_service() {
 
 
 function _stop_node_service() {
-    if [ -f $OPENSHIFT_NODEJS06_CART_DIR/run/node.pid ]; then
-        node_pid=$( cat $OPENSHIFT_NODEJS06_CART_DIR/run/node.pid 2> /dev/null )
+    if [ -f $OPENSHIFT_NODEJS_CART_DIR/run/node.pid ]; then
+        node_pid=$( cat $OPENSHIFT_NODEJS_CART_DIR/run/node.pid 2> /dev/null )
     fi
 
     if [ -n "$node_pid" ]; then
@@ -133,7 +133,7 @@ function _stop_node_service() {
         fi
 
         echo "`date +"$FMT"`: Stopped Node application '$OPENSHIFT_GEAR_NAME'" >> $logf
-        rm -f $OPENSHIFT_NODEJS06_CART_DIR/run/node.pid
+        rm -f $OPENSHIFT_NODEJS_CART_DIR/run/node.pid
 
         run_user_hook post_stop_${CARTRIDGE_TYPE}
     else
