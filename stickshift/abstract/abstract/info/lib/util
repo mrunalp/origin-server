@@ -163,8 +163,15 @@ function get_cartridge_namespace_from_path {
     echo $CART_NS
 }
 
+# Convert the given cartridge name to env namespace.
+# Ruby is special-cased here because we have distinct carts
+# for ruby-1.8 and ruby-1.9.
 function convert_cart_name_to_namespace_id {
-    echo $1 | sed 's/[^a-zA-Z_]//g' | tr '[a-z]' '[A-Z]'
+    if [[ $1 =~ "ruby" ]]; then
+        echo $1 | sed 's/[^a-zA-Z0-9_]//g' | tr '[a-z]' '[A-Z]'
+    else 
+        echo $1 | sed 's/[^a-zA-Z_]//g' | tr '[a-z]' '[A-Z]'
+    fi
 }
 
 #
