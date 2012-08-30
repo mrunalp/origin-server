@@ -16,7 +16,7 @@ else
 
   CART_NAME=$(get_cartridge_name_from_path)
   CART_NS=$(get_cartridge_namespace_from_path)
-  CART_DIR=$(get_env_var_dynamic "OPENSHIFT_${CART_NS}_DIR")
+  CART_DIR=$(get_env_var_dynamic "OPENSHIFT_${CART_NS}_CART_DIR")
   JBOSS_DIR=${CART_DIR}/${CART_NAME}
 
   standalone_tmp=${JBOSS_DIR}/standalone/tmp
