@@ -145,10 +145,10 @@ When embedding a database using 'rhc app cartridge add', you can reference envir
 variables for username, host and password. For example, when embedding MySQL 5.1, the 
 following variables will be available:
 
-    System.getenv("OPENSHIFT_MYSQL51_HOST")      - DB host
-    System.getenv("OPENSHIFT_MYSQL51_PORT")      - DB Port
-    System.getenv("OPENSHIFT_MYSQL51_USERNAME")  - DB Username
-    System.getenv("OPENSHIFT_MYSQL51_PASSWORD")  - DB Password
+    System.getenv("OPENSHIFT_MYSQL_HOST")      - DB host
+    System.getenv("OPENSHIFT_MYSQL_PORT")      - DB Port
+    System.getenv("OPENSHIFT_MYSQL_USERNAME")  - DB Username
+    System.getenv("OPENSHIFT_MYSQL_PASSWORD")  - DB Password
 
 To get a full list of environment variables, simply add a line in your
 .openshift/action_hooks/build script that says "export" and push.

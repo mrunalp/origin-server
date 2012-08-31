@@ -48,7 +48,7 @@ start_jenkins() {
         -jar /usr/lib/jenkins/jenkins.war \
         --ajp13Port=-1 \
         --controlPort=-1 \
-        --logfile=$OPENSHIFT_JENKINS14_LOG_DIR/jenkins.log \
+        --logfile=$OPENSHIFT_JENKINS_LOG_DIR/jenkins.log \
         --daemon \
         --httpPort=8080 \
         --debug=5 \
@@ -72,7 +72,7 @@ stop_jenkins() {
 case "$1" in
     start)
         _state=`get_app_state`
-        if [ -f ${OPENSHIFT_JENKINS14_RUN_DIR}/stop_lock -o idle = "$_state" ]
+        if [ -f ${OPENSHIFT_JENKINS_RUN_DIR}/stop_lock -o idle = "$_state" ]
         then
             echo "Application is explicitly stopped!  Use 'rhc app start -a ${OPENSHIFT_GEAR_NAME}' to start back up." 1>&2
             exit 0

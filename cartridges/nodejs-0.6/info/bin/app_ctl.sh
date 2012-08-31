@@ -61,7 +61,7 @@ function _start_node_service() {
     src_user_hook pre_start_${CARTRIDGE_TYPE}
 
     envf="$OPENSHIFT_NODEJS_CART_DIR/conf/node.env"
-    logf="$OPENSHIFT_NODEJS06_LOG_DIR/node.log"
+    logf="$OPENSHIFT_NODEJS_LOG_DIR/node.log"
 
     #  Source environment if it exists.
     [ -f "$envf" ]  &&  source "$envf"
@@ -114,7 +114,7 @@ function _stop_node_service() {
 
         src_user_hook pre_stop_${CARTRIDGE_TYPE}
 
-        logf="$OPENSHIFT_NODEJS06_LOG_DIR/node.log"
+        logf="$OPENSHIFT_NODEJS_LOG_DIR/node.log"
         echo "`date +"$FMT"`: Stopping application '$OPENSHIFT_GEAR_NAME' ..." >> $logf
         /bin/kill $node_pid
         ret=$?

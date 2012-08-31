@@ -97,12 +97,12 @@
 				</datasource>
 				<datasource jndi-name="java:jboss/datasources/MysqlDS"
 					enabled="${mysql.enabled}" use-java-context="true" pool-name="MysqlDS">
-					<connection-url>jdbc:mysql://${env.OPENSHIFT_MYSQL51_HOST}:${env.OPENSHIFT_MYSQL51_PORT}/${env.OPENSHIFT_APP_NAME}
+					<connection-url>jdbc:mysql://${env.OPENSHIFT_MYSQL_HOST}:${env.OPENSHIFT_MYSQL_PORT}/${env.OPENSHIFT_APP_NAME}
 					</connection-url>
 					<driver>mysql</driver>
 					<security>
-						<user-name>${env.OPENSHIFT_MYSQL51_USERNAME}</user-name>
-						<password>${env.OPENSHIFT_MYSQL51_PASSWORD}</password>
+						<user-name>${env.OPENSHIFT_MYSQL_USERNAME}</user-name>
+						<password>${env.OPENSHIFT_MYSQL_PASSWORD}</password>
 					</security>
 					<validation>
                       <check-valid-connection-sql>SELECT 1</check-valid-connection-sql>
@@ -111,12 +111,12 @@
 				<datasource jndi-name="java:jboss/datasources/PostgreSQLDS"
 					enabled="${postgresql.enabled}" use-java-context="true" pool-name="PostgreSQLDS"
 					use-ccm="true">
-					<connection-url>jdbc:postgresql://${env.OPENSHIFT_POSTGRESQL84_HOST}:${env.OPENSHIFT_POSTGRESQL84_PORT}/${env.OPENSHIFT_APP_NAME}
+					<connection-url>jdbc:postgresql://${env.OPENSHIFT_POSTGRESQL_HOST}:${env.OPENSHIFT_POSTGRESQL_PORT}/${env.OPENSHIFT_APP_NAME}
 					</connection-url>
 					<driver>postgresql</driver>
 					<security>
-						<user-name>${env.OPENSHIFT_POSTGRESQL84_USERNAME}</user-name>
-						<password>${env.OPENSHIFT_POSTGRESQL84_PASSWORD}</password>
+						<user-name>${env.OPENSHIFT_POSTGRESQL_USERNAME}</user-name>
+						<password>${env.OPENSHIFT_POSTGRESQL_PASSWORD}</password>
 					</security>
 					<validation>
                       <check-valid-connection-sql>SELECT 1</check-valid-connection-sql>
