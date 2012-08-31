@@ -48,9 +48,9 @@ source_if_exists "$APP_HOME/.env/OPENSHIFT_APP_NAME"
 #    exit 132
 #fi
 
-if [ -f $APP_HOME/.env/OPENSHIFT_DB_TYPE ]; then
-    source $APP_HOME/.env/OPENSHIFT_DB_TYPE
-    client_error "Only 1 embedded database permitted - application currently has '$OPENSHIFT_DB_TYPE'"
+if [ -f $APP_HOME/.env/OPENSHIFT_POSTGRESQL_DB_TYPE ]; then
+    source $APP_HOME/.env/OPENSHIFT_POSTGRESQL_DB_TYPE
+    client_error "Only 1 embedded database permitted - application currently has '$OPENSHIFT_POSTGRESQL_DB_TYPE'"
     exit 133
 fi
 
@@ -103,18 +103,18 @@ password=$(generate_password)
 #
 # Setup Environment Variables
 #
-echo "export OPENSHIFT_DB_USERNAME='admin'" > $APP_HOME/.env/OPENSHIFT_DB_USERNAME
-echo "export OPENSHIFT_DB_PASSWORD='$password'" > $APP_HOME/.env/OPENSHIFT_DB_PASSWORD
-echo "export OPENSHIFT_DB_TYPE='postgresql'" > $APP_HOME/.env/OPENSHIFT_DB_TYPE
-echo "export OPENSHIFT_DB_HOST='$IP'" > $APP_HOME/.env/OPENSHIFT_DB_HOST
-echo "export OPENSHIFT_DB_PORT='5432'" > $APP_HOME/.env/OPENSHIFT_DB_PORT
-echo "export OPENSHIFT_DB_SOCKET='${CART_INSTANCE_DIR}/socket/postgres.sock'" > $APP_HOME/.env/OPENSHIFT_DB_SOCKET
-echo "export OPENSHIFT_DB_URL='postgresql://admin:$password@$IP:5432/'" > $APP_HOME/.env/OPENSHIFT_DB_URL
-echo "export OPENSHIFT_DB_CTL_SCRIPT='$CART_INSTANCE_DIR/${application}_postgresql_ctl.sh'" > $APP_HOME/.env/OPENSHIFT_DB_CTL_SCRIPT
-echo "export OPENSHIFT_DB_POSTGRESQL_84_DUMP='$CART_INFO_DIR/bin/postgresql_dump.sh'" > $APP_HOME/.env/OPENSHIFT_DB_POSTGRESQL_84_DUMP
-echo "export OPENSHIFT_DB_POSTGRESQL_84_DUMP_CLEANUP='$CART_INFO_DIR/bin/postgresql_cleanup.sh'" > $APP_HOME/.env/OPENSHIFT_DB_POSTGRESQL_84_DUMP_CLEANUP
-echo "export OPENSHIFT_DB_POSTGRESQL_84_RESTORE='$CART_INFO_DIR/bin/postgresql_restore.sh'" > $APP_HOME/.env/OPENSHIFT_DB_POSTGRESQL_84_RESTORE
-echo "export OPENSHIFT_DB_POSTGRESQL_84_EMBEDDED_TYPE='postgresql-8.4'" > $APP_HOME/.env/OPENSHIFT_DB_POSTGRESQL_84_EMBEDDED_TYPE
+echo "export OPENSHIFT_POSTGRESQL_DB_USERNAME='admin'" > $APP_HOME/.env/OPENSHIFT_POSTGRESQL_DB_USERNAME
+echo "export OPENSHIFT_POSTGRESQL_DB_PASSWORD='$password'" > $APP_HOME/.env/OPENSHIFT_POSTGRESQL_DB_PASSWORD
+echo "export OPENSHIFT_POSTGRESQL_DB_TYPE='postgresql'" > $APP_HOME/.env/OPENSHIFT_POSTGRESQL_DB_TYPE
+echo "export OPENSHIFT_POSTGRESQL_DB_HOST='$IP'" > $APP_HOME/.env/OPENSHIFT_POSTGRESQL_DB_HOST
+echo "export OPENSHIFT_POSTGRESQL_DB_PORT='5432'" > $APP_HOME/.env/OPENSHIFT_POSTGRESQL_DB_PORT
+echo "export OPENSHIFT_POSTGRESQL_DB_SOCKET='${CART_INSTANCE_DIR}/socket/postgres.sock'" > $APP_HOME/.env/OPENSHIFT_POSTGRESQL_DB_SOCKET
+echo "export OPENSHIFT_POSTGRESQL_DB_URL='postgresql://admin:$password@$IP:5432/'" > $APP_HOME/.env/OPENSHIFT_POSTGRESQL_DB_URL
+echo "export OPENSHIFT_POSTGRESQL_DB_CTL_SCRIPT='$CART_INSTANCE_DIR/${application}_postgresql_ctl.sh'" > $APP_HOME/.env/OPENSHIFT_POSTGRESQL_DB_CTL_SCRIPT
+echo "export OPENSHIFT_POSTGRESQL_DB_POSTGRESQL_84_DUMP='$CART_INFO_DIR/bin/postgresql_dump.sh'" > $APP_HOME/.env/OPENSHIFT_POSTGRESQL_DB_POSTGRESQL_84_DUMP
+echo "export OPENSHIFT_POSTGRESQL_DB_POSTGRESQL_84_DUMP_CLEANUP='$CART_INFO_DIR/bin/postgresql_cleanup.sh'" > $APP_HOME/.env/OPENSHIFT_POSTGRESQL_DB_POSTGRESQL_84_DUMP_CLEANUP
+echo "export OPENSHIFT_POSTGRESQL_DB_POSTGRESQL_84_RESTORE='$CART_INFO_DIR/bin/postgresql_restore.sh'" > $APP_HOME/.env/OPENSHIFT_POSTGRESQL_DB_POSTGRESQL_84_RESTORE
+echo "export OPENSHIFT_POSTGRESQL_DB_POSTGRESQL_84_EMBEDDED_TYPE='postgresql-8.4'" > $APP_HOME/.env/OPENSHIFT_POSTGRESQL_DB_POSTGRESQL_84_EMBEDDED_TYPE
 
 
 # Setup psql command files
@@ -127,17 +127,17 @@ chown $user_id.$group_id  $APP_HOME/.psql_history $APP_HOME/.pgpass
 #
 # Start postgres
 #
-export OPENSHIFT_DB_USERNAME='admin'
-export OPENSHIFT_DB_PASSWORD="$password"
-export OPENSHIFT_DB_HOST="$IP"
-export OPENSHIFT_DB_PORT='5432'
-export OPENSHIFT_DB_CTL_SCRIPT="$CART_INSTANCE_DIR/${application}_postgresql_ctl.sh"
+export OPENSHIFT_POSTGRESQL_DB_USERNAME='admin'
+export OPENSHIFT_POSTGRESQL_DB_PASSWORD="$password"
+export OPENSHIFT_POSTGRESQL_DB_HOST="$IP"
+export OPENSHIFT_POSTGRESQL_DB_PORT='5432'
+export OPENSHIFT_POSTGRESQL_DB_CTL_SCRIPT="$CART_INSTANCE_DIR/${application}_postgresql_ctl.sh"
 start_db
 
 # TODO: rmillner: is the owner $uuid or admin?
 ## Setup user
 dbname=${OPENSHIFT_APP_NAME:-$application}
-cat <<EOF | PGPASSWORD=admin psql -a -h $OPENSHIFT_DB_HOST -p $OPENSHIFT_DB_PORT -U admin -d postgres -f - || error "Failed to set credentials or create database" 124
+cat <<EOF | PGPASSWORD=admin psql -a -h $OPENSHIFT_POSTGRESQL_DB_HOST -p $OPENSHIFT_POSTGRESQL_DB_PORT -U admin -d postgres -f - || error "Failed to set credentials or create database" 124
 CREATE USER "$uuid" with SUPERUSER CREATEDB CREATEROLE;
 CREATE DATABASE "$dbname" OWNER "$uuid";
 ALTER USER admin PASSWORD '$password';
@@ -154,9 +154,9 @@ psql_port="5432"
 if is_a_scalable_app; then
     if $(dirname "$0")/expose-port "$@"; then
         source $APP_HOME/.env/OPENSHIFT_GEAR_DNS
-        source $APP_HOME/.env/OPENSHIFT_DB_PROXY_PORT
+        source $APP_HOME/.env/OPENSHIFT_POSTGRESQL_DB_PROXY_PORT
         psql_ip=${OPENSHIFT_GEAR_DNS:-"$IP"}
-        psql_port=${OPENSHIFT_DB_PROXY_PORT:-5432}
+        psql_port=${OPENSHIFT_POSTGRESQL_DB_PROXY_PORT:-5432}
     fi
 fi
 

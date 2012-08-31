@@ -12,9 +12,9 @@ source ${CART_INFO_DIR}/lib/util
 
 start_db_as_user 1>&2
 
-dbhost=${OPENSHIFT_DB_GEAR_DNS:-$OPENSHIFT_DB_HOST}
+dbhost=${OPENSHIFT_MYSQL_DB_GEAR_DNS:-$OPENSHIFT_MYSQL_DB_HOST}
 get_db_host_as_user > $OPENSHIFT_DATA_DIR/mysql_db_host
-/usr/bin/mysqldump -h $dbhost -P $OPENSHIFT_DB_PORT -u $OPENSHIFT_DB_USERNAME --password="$OPENSHIFT_DB_PASSWORD" --all-databases --add-drop-table | /bin/gzip -v > $OPENSHIFT_DATA_DIR/mysql_dump_snapshot.gz
+/usr/bin/mysqldump -h $dbhost -P $OPENSHIFT_MYSQL_DB_PORT -u $OPENSHIFT_MYSQL_DB_USERNAME --password="$OPENSHIFT_MYSQL_DB_PASSWORD" --all-databases --add-drop-table | /bin/gzip -v > $OPENSHIFT_DATA_DIR/mysql_dump_snapshot.gz
 
 if [ ! ${PIPESTATUS[0]} -eq 0 ]
 then

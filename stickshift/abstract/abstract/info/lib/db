@@ -47,26 +47,13 @@ function _set_db_env {
     # sourced.  Further, functions may be called only when their own
     # requirements are satisfied and variables may change so source
     # this at the top of each function.
-    case $_db_calling_type in
-        'nosql_db')
-            _ctl_script="$OPENSHIFT_NOSQL_DB_CTL_SCRIPT"
-            _ctl_ongear_script="$OPENSHIFT_NOSQL_DB_CTL_ONGEAR_SCRIPT"
-            _db_gear_uuid="$OPENSHIFT_NOSQL_DB_GEAR_UUID"
-            _db_gear_dns="$OPENSHIFT_NOSQL_DB_GEAR_DNS"
-            _db_host="$OPENSHIFT_NOSQL_DB_HOST"
-            ;;
-        'db')
-            _ctl_script="$OPENSHIFT_DB_CTL_SCRIPT"
-            _ctl_ongear_script="$OPENSHIFT_DB_CTL_ONGEAR_SCRIPT"
-            _db_gear_uuid="$OPENSHIFT_DB_GEAR_UUID"
-            _db_gear_dns="$OPENSHIFT_DB_GEAR_DNS"
-            _db_host="$OPENSHIFT_DB_HOST"
-            ;;
-        *)
-            warn "ERROR: Database calling type set to unknown value: $_db_calling_type"
-            return 1
-            ;;
-    esac
+    CART_NS=$(get_cartridge_namespace_from_path)
+    
+    _ctl_script=$(get_env_var_dynamic "OPENSHIFT_${CART_NS}_DB_CTL_SCRIPT")
+    _ctl_ongear_script=$(get_env_var_dynamic "OPENSHIFT_${CART_NS}_DB_CTL_ONGEAR_SCRIPT")
+    _db_gear_uuid=$(get_env_var_dynamic "OPENSHIFT_${CART_NS}_DB_GEAR_UUID")
+    _db_gear_dns=$(get_env_var_dynamic "OPENSHIFT_${CART_NS}_DB_GEAR_DNS")
+    _db_host=$(get_env_var_dynamic "OPENSHIFT_${CART_NS}_DB_HOST")
 }
 
 function start_db {
