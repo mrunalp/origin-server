@@ -1,7 +1,7 @@
 #!/bin/bash
 
 echo "Stopping application..."
-    for env_var in  $APP_HOME/.env/*_CTL_SCRIPT
+    for env_var in  ~/.env/*_CTL_SCRIPT
     do
         . $env_var
     done
