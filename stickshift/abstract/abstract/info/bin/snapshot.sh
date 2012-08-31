@@ -21,14 +21,13 @@ cd ~
 cd ..
 echo "Creating and sending tar.gz" 1>&2
 
-cart_type=$(basename $(dirname $OPENSHIFT_GEAR_CTL_SCRIPT))
 /bin/tar --ignore-failed-read -czf - \
         --exclude=./$OPENSHIFT_GEAR_UUID/.tmp \
         --exclude=./$OPENSHIFT_GEAR_UUID/.ssh \
         --exclude=./$OPENSHIFT_GEAR_UUID/.sandbox \
-        --exclude=./$OPENSHIFT_GEAR_UUID/$cart_type/${OPENSHIFT_GEAR_NAME}_ctl.sh \
-        --exclude=./$OPENSHIFT_GEAR_UUID/$cart_type/conf.d/stickshift.conf \
-        --exclude=./$OPENSHIFT_GEAR_UUID/$cart_type/run/httpd.pid \
+        --exclude=./$OPENSHIFT_GEAR_UUID/*/${OPENSHIFT_GEAR_NAME}_ctl.sh \
+        --exclude=./$OPENSHIFT_GEAR_UUID/*/conf.d/stickshift.conf \
+        --exclude=./$OPENSHIFT_GEAR_UUID/*/run/httpd.pid \
         --exclude=./$OPENSHIFT_GEAR_UUID/haproxy-\*/run/stats \
         --exclude=./$OPENSHIFT_GEAR_UUID/app-root/runtime/.state \
         --exclude=./$OPENSHIFT_GEAR_UUID/app-root/data/.bash_history \
