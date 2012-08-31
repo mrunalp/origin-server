@@ -7,23 +7,6 @@
 [ ! -z "$LI_CONTROLLER_LIB_DB" ] && return 0
 LI_CONTROLLER_LIB_DB=true
 
-# Call as:
-#    source db [dbtype]
-# where dbtype is required and either db or nosql_db.
-case "$1" in
-    'NOSQL_DB'|'nosql_db')
-        _db_calling_type='nosql_db'
-        ;;
-    'DB'|'db')
-        _db_calling_type='db'
-        ;;
-    *)
-        warn "ERROR: Database type required and eihter db or nosql_db."
-        return 1
-        ;;
-esac
-
-
 #
 # Skeleton functions, override for specific cartridges
 #
@@ -116,14 +99,7 @@ function stop_db_as_user {
 function get_db_host_as_user {
     _set_db_env
     if is_db_on_dbgear; then
-        case $_db_calling_type in
-            'db')
-                ssh_dbgear 'echo $OPENSHIFT_DB_HOST' 2>/dev/null
-                ;;
-            'nosql_db')
-                ssh_dbgear 'echo $OPENSHIFT_NOSQL_DB_HOST' 2>/dev/null
-                ;;
-        esac
+        ssh_dbgear 'echo $_db_host' 2>/dev/null
         return 0
     fi
 

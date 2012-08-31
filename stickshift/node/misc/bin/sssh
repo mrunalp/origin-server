@@ -70,14 +70,14 @@ function mongo() {
       uopt=""
       popt=""
    else
-      uopt="--username ${OPENSHIFT_NOSQL_DB_USERNAME:-'admin'}"
-      [ -n "$OPENSHIFT_NOSQL_DB_PASSWORD" ]  &&  popt="--password $OPENSHIFT_NOSQL_DB_PASSWORD"
+      uopt="--username ${OPENSHIFT_MONGODB_DB_USERNAME:-'admin'}"
+      [ -n "$OPENSHIFT_MONGODB_DB_PASSWORD" ]  &&  popt="--password $OPENSHIFT_MONGODB_DB_PASSWORD"
    fi
 
-   if echo "$@" | egrep "\-\-host|$OPENSHIFT_NOSQL_DB_HOST" > /dev/null; then
+   if echo "$@" | egrep "\-\-host|$OPENSHIFT_MONGODB_DB_HOST" > /dev/null; then
       hopt=""  #  Do not override if --host is passed.
    else
-      hopt="${OPENSHIFT_NOSQL_DB_HOST:-'127.0.0.1'}:${OPENSHIFT_NOSQL_DB_PORT:-27017}/admin"
+      hopt="${OPENSHIFT_MONGODB_DB_HOST:-'127.0.0.1'}:${OPENSHIFT_MONGODB_DB_PORT:-27017}/admin"
    fi
 
    /usr/bin/mongo ${hopt} ${uopt} ${popt} "$@"
