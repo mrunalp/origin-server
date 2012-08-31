@@ -10,7 +10,7 @@ echo "Stopping application..."
                             if (a ~ /DB_CTL_SCRIPT$/)
                             print ENVIRON[a] }'`
     do
-        "$cmd start" || error "Failed to start ${cmd}" 121
+        "$cmd stop" || error "Failed to start ${cmd}" 121
     done
     for cmd in `awk 'BEGIN {
                             for (a in ENVIRON)
@@ -19,13 +19,13 @@ echo "Stopping application..."
                                     !(a ~ /CART_CTL_SCRIPT$/))
                                         print ENVIRON[a] }'`
     do
-        "$cmd start" || error "Failed to start ${cmd}" 121
+        "$cmd stop" || error "Failed to start ${cmd}" 121
     done
     for cmd in `awk 'BEGIN {
                         for (a in ENVIRON)
                             if (a ~ /CART_CTL_SCRIPT$/)
                                 print ENVIRON[a] }'`
     do
-        "$cmd start" || error "Failed to start ${cmd}" 121
+        "$cmd stop" || error "Failed to start ${cmd}" 121
     done
 echo "Done"
