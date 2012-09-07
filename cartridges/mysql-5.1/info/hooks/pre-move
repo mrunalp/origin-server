@@ -55,8 +55,7 @@ then
     error "Can not move mysql without OPENSHIFT_MYSQL_DB_PASSWORD" 188
 else
 
-OPENSHIFT_MYSQL_DB_CTL_SCRIPT="$MYSQL_DIR/${application}_mysql_ctl.sh"
-start_db
+start_database $cartridge_type
 
     echo "
 grant all on *.* to '$OPENSHIFT_MYSQL_DB_USERNAME'@'%' identified by '$OPENSHIFT_MYSQL_DB_PASSWORD' with grant option;

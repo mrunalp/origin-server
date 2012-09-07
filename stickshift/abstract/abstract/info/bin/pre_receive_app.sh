@@ -33,7 +33,7 @@ function commit_contains_file_with_status () {
 }
 
 # Stops the app (or not), taking into account the hot_deploy marker.
-function stop_app () {
+function stop_application () {
   # We ONLY want to disable this if the hot deploy marker will be present
   # following the commit application.
   stop_required=true
@@ -107,6 +107,6 @@ if [ -z $OPENSHIFT_SKIP_GIT_HOOKS ]
 then
     if [ -z "$OPENSHIFT_CI_TYPE" ] || [ -z "$JENKINS_URL" ]
     then
-        stop_app
+        stop_application
     fi
 fi

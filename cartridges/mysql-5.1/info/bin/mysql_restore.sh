@@ -32,7 +32,7 @@ then
         echo "Error: Could not import MySQL Database!  Continuing..." 1>&2
         echo 1>&2
     fi
-    $OPENSHIFT_MYSQL_DB_DUMP_CLEANUP
+    ${CART_INFO_DIR}/bin/mysql_cleanup.sh
 
 else
     echo "MySQL restore attempted but no dump found!" 1>&2

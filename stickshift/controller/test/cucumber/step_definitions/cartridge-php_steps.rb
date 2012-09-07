@@ -54,7 +54,6 @@ Then /^the php file permissions are correct/ do
   # Configure files (relative to app_home)
   configure_files = { "php-5.3" => ['root', 'root', '40755', se_context],
                     "php-5.3/" => ['root', 'root', '40755', se_context],
-                    "php-5.3/#{@app.name}_ctl.sh" => ['root', 'root', '100755', se_context],
                     ".pearrc" => ['root', 'root', '100644', se_context],
                     "php-5.3/conf/" => ['root', 'root', '40755', se_context],
                     "php-5.3/conf/php.ini" => ['root', 'root', '100644', se_context],

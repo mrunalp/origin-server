@@ -1,7 +1,7 @@
 #!/bin/bash -e
 
+cartridge_type="phpmyadmin-3.4"
 source /etc/stickshift/stickshift-node.conf
-cartridge_type="mysql-5.1"
 source ${CARTRIDGE_BASE_PATH}/abstract/info/lib/util
 
 # Import Environment Variables
@@ -18,11 +18,11 @@ fi
 
 validate_run_as_user
 
-mysql_ctl="${CARTRIDGE_BASE_PATH}/$cartridge_type/info/bin/mysql_ctl.sh"
+phpmyadmin_ctl="${CARTRIDGE_BASE_PATH}/$cartridge_type/info/bin/phpmyadmin_ctl.sh"
 
 case "$1" in
-    start)                    "$mysql_ctl" start    ;;
-    restart|reload|graceful)  "$mysql_ctl" restart  ;;
-    stop|graceful-stop)       "$mysql_ctl" stop     ;;
-    status)                   "$mysql_ctl" status   ;;
+    start)                    "$phpmyadmin_ctl" start    ;;
+    restart|reload|graceful)  "$phpmyadmin_ctl" restart  ;;
+    stop|graceful-stop)       "$phpmyadmin_ctl" stop     ;;
+    status)                   "$phpmyadmin_ctl" status   ;;
 esac
