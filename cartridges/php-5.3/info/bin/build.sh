@@ -6,12 +6,15 @@ do
     . $f
 done
 
+cartridge_type="php-5.3"
+OPENSHIFT_PHP_DIR=$OPENSHIFT_HOMEDIR/$cartridge_type/
+
 if [ -f "${OPENSHIFT_REPO_DIR}/.openshift/markers/force_clean_build" ]
 then
     echo ".openshift/markers/force_clean_build found!  Recreating pear libs" 1>&2
-    rm -rf "${OPENSHIFT_PHP_CART_DIR}"/phplib/pear/*
-    mkdir -p "${OPENSHIFT_PHP_CART_DIR}"/phplib/pear/{docs,ext,php,cache,cfg,data,download,temp,tests,www}
-    pear -c ~/.pearrc config-set php_ini "${OPENSHIFT_PHP_CART_DIR}/conf/php.ini"
+    rm -rf "${OPENSHIFT_PHP_DIR}"/phplib/pear/*
+    mkdir -p "${OPENSHIFT_PHP_DIR}"/phplib/pear/{docs,ext,php,cache,cfg,data,download,temp,tests,www}
+    pear -c ~/.pearrc config-set php_ini "${OPENSHIFT_PHP_DIR}/conf/php.ini"
 fi
 
 if [ -f ${OPENSHIFT_REPO_DIR}deplist.txt ]
