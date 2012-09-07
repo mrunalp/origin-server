@@ -12,9 +12,6 @@ Website: http://www.php.net
 Help-Topics:
   "Developer Center": https://openshift.redhat.com/community/developers
 Cart-Data:
-  - Key: OPENSHIFT_PHP_LOG_DIR
-    Type: environment
-    Description: "Directory to store application log files."
   - Key: OPENSHIFT_TMP_DIR
     Type: environment
     Description: "Directory to store application temporary files."
