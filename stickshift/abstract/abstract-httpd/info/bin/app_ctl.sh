@@ -4,9 +4,6 @@ source "/etc/stickshift/stickshift-node.conf"
 source ${CARTRIDGE_BASE_PATH}/abstract/info/lib/util
 source ${CARTRIDGE_BASE_PATH}/abstract/info/lib/apache
 
-exec &> /tmp/abstract_app_ctl.txt
-set -x
-
 # Import Environment Variables
 for f in ~/.env/*
 do
@@ -24,8 +21,6 @@ fi
 validate_run_as_user
 
 . app_ctl_pre.sh
-
-cartridge_type=$(get_cartridge_type_from_path)
 
 CART_CONF_DIR=${CARTRIDGE_BASE_PATH}/${cartridge_type}/info/configuration/etc/conf
 
@@ -50,7 +45,7 @@ case "$1" in
         fi
     ;;
     graceful-stop|stop)
-        app_ctl_stop.sh $1
+        cartridge_type=$cartridge_type app_ctl_stop.sh $1
     ;;
     restart|graceful)
         ensure_valid_httpd_process "$HTTPD_PID_FILE" "$HTTPD_CFG_FILE"

@@ -62,7 +62,7 @@ function start_app {
 function stop_app {
     set_app_state stopped
 
-    for cmd in $(get_stop_order)
+    for cart in $(get_stop_order)
     do
         run_as_user "${CARTRIDGE_BASE_PATH}/$cart/info/bin/app_ctl.sh stop" || error "Failed to stop ${cart}" 121
     done
