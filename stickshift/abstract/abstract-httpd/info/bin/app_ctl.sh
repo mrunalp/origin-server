@@ -4,6 +4,9 @@ source "/etc/stickshift/stickshift-node.conf"
 source ${CARTRIDGE_BASE_PATH}/abstract/info/lib/util
 source ${CARTRIDGE_BASE_PATH}/abstract/info/lib/apache
 
+exec &> /tmp/abstract_app_ctl.txt
+set -x
+
 # Import Environment Variables
 for f in ~/.env/*
 do
@@ -22,9 +25,11 @@ validate_run_as_user
 
 . app_ctl_pre.sh
 
-CART_CONF_DIR=${CARTRIDGE_BASE_PATH}/${CARTRIDGE_TYPE}/info/configuration/etc/conf
+cartridge_type=$(get_cartridge_type_from_path)
 
-cart_instance_dir=${OPENSHIFT_HOMEDIR}/${CARTRIDGE_TYPE}
+CART_CONF_DIR=${CARTRIDGE_BASE_PATH}/${cartridge_type}/info/configuration/etc/conf
+
+cart_instance_dir=${OPENSHIFT_HOMEDIR}/${cartridge_type}
 
 HTTPD_CFG_FILE=$CART_CONF_DIR/httpd_nolog.conf
 HTTPD_PID_FILE=$cart_instance_dir/run/httpd.pid
@@ -38,10 +43,10 @@ case "$1" in
             exit 0
         else
             ensure_valid_httpd_process "$HTTPD_PID_FILE" "$HTTPD_CFG_FILE"
-            src_user_hook pre_start_${CARTRIDGE_TYPE}
+            src_user_hook pre_start_${cartridge_type}
             set_app_state started
             /usr/sbin/httpd -C "Include $cart_instance_dir/conf.d/*.conf" -f $HTTPD_CFG_FILE -k $1
-            run_user_hook post_start_${CARTRIDGE_TYPE}
+            run_user_hook post_start_${cartridge_type}
         fi
     ;;
     graceful-stop|stop)
@@ -49,9 +54,9 @@ case "$1" in
     ;;
     restart|graceful)
         ensure_valid_httpd_process "$HTTPD_PID_FILE" "$HTTPD_CFG_FILE"
-        src_user_hook pre_start_${CARTRIDGE_TYPE}
+        src_user_hook pre_start_${cartridge_type}
         set_app_state started
         /usr/sbin/httpd -C "Include $cart_instance_dir/conf.d/*.conf" -f $HTTPD_CFG_FILE -k $1
-        run_user_hook post_start_${CARTRIDGE_TYPE}
+        run_user_hook post_start_${cartridge_type}
     ;;
 esac

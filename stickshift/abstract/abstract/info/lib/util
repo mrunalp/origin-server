@@ -20,6 +20,29 @@ function assert_not_empty {
     fi
 }
 
+function get_gear_start_order {
+    local start_order=`ls $APP_HOME/{} 2>/dev/null`
+    echo $start_order
+}
+
+#
+# Function to get the start/stop order on the basis of installed carts
+# TODO: Replace with reading from start/stop order files when implemented
+#
+function get_component_order {
+    (cd $APP_HOME; ls -d {mongodb-2.0,mysql-5.1,postgresql-8.4,10gen-mms-agent-0.1,cron-1.4,jenkins-client-1.4,metrics-0.1,phpmoadmin-1.0,phpmyadmin-3.4,rockmongo-1.1,haproxy-1.4,diy-0.1,jbossas-7,jbosseap-6.0,jenkins-1.4,nodejs-0.6,perl-5.10,php-5.3,python-2.6,ruby-1.8,ruby-1.9,zend-5.6} 2>/dev/null) | $1
+}
+
+# Get the start order from installed carts
+function get_start_order {
+    echo $(get_component_order "cat")
+}
+
+# Get the stop order from installed carts
+function get_stop_order {
+    echo $(get_component_order "tac")
+}
+
 # Public: Start all processes in a given gear
 #
 # Examples:
@@ -28,68 +51,20 @@ function assert_not_empty {
 #
 # Returns 0 on success
 function start_app {
-    for env_var in  $APP_HOME/.env/*_CTL_SCRIPT
-    do
-        . $env_var
-    done
-
     set_app_state started
 
-    for cmd in `awk 'BEGIN {
-                            for (a in ENVIRON)
-                            if (a ~ /DB_CTL_SCRIPT$/)
-                            print ENVIRON[a] }'`
+    for cart in $(get_start_order)
     do
-        run_as_user "$cmd start" || error "Failed to start ${cmd}" 121
-    done
-    for cmd in `awk 'BEGIN {
-                            for (a in ENVIRON)
-                                if ((a ~ /_CTL_SCRIPT$/) &&
-                                    !(a ~ /DB_CTL_SCRIPT$/) &&
-                                    !(a ~ /CART_CTL_SCRIPT$/))
-                                        print ENVIRON[a] }'`
-    do
-        run_as_user "$cmd start" || error "Failed to start ${cmd}" 121
-    done
-    for cmd in `awk 'BEGIN {
-                        for (a in ENVIRON)
-                            if (a ~ /CART_CTL_SCRIPT$/)
-                                print ENVIRON[a] }'`
-    do
-        run_as_user "$cmd start" || error "Failed to start ${cmd}" 121
+        run_as_user "${CARTRIDGE_BASE_PATH}/$cart/info/bin/app_ctl.sh start" || error "Failed to start ${cart}" 121
     done
 }
 
 function stop_app {
-    for env_var in  $APP_HOME/.env/*_CTL_SCRIPT
-    do
-        . $env_var
-    done
-
     set_app_state stopped
 
-    for cmd in `awk 'BEGIN {
-                        for (a in ENVIRON)
-                            if (a ~ /CART_CTL_SCRIPT$/)
-                                print ENVIRON[a] }'`
+    for cmd in $(get_stop_order)
     do
-        run_as_user "$cmd stop" || echo "Failed to stop ${cmd}" 1>&2
-    done
-    for cmd in `awk 'BEGIN {
-                        for (a in ENVIRON)
-                        if ((a ~ /_CTL_SCRIPT$/) &&
-                            !(a ~ /DB_CTL_SCRIPT$/) &&
-                            !(a ~ /CART_CTL_SCRIPT$/))
-                                print ENVIRON[a] }'`
-    do
-        run_as_user "$cmd stop" || echo "Failed to stop ${cmd}" 1>&2
-    done
-    for cmd in `awk 'BEGIN {
-                            for (a in ENVIRON)
-                                if (a ~ /DB_CTL_SCRIPT$/)
-                                    print ENVIRON[a] }'`
-    do
-        run_as_user "$cmd stop" || echo "Failed to stop ${cmd}" 1>&2
+        run_as_user "${CARTRIDGE_BASE_PATH}/$cart/info/bin/app_ctl.sh stop" || error "Failed to stop ${cart}" 121
     done
 }
 
@@ -329,15 +304,15 @@ function create_app_dir_symlink {
 
 # Create simple application start / stop script
 function create_app_ctl_script {
-    rm -f "$APP_DIR/${application}_ctl.sh"
+    rm -f "$APP_DIR/${cartridge_type}_ctl.sh"
     
-    cat <<EOF >> "$APP_DIR/${application}_ctl.sh"
+    cat <<EOF >> "$APP_DIR/${cartridge_type}_ctl.sh"
 #!/bin/bash -e
 
 EOF
     
     if [ "$1" ]; then
-        cat <<EOF >> "$APP_DIR/${application}_ctl.sh"
+        cat <<EOF >> "$APP_DIR/${cartridge_type}_ctl.sh"
 # Expose which cartridge created the ctl script
 export CARTRIDGE_TYPE="$1"
 
@@ -345,7 +320,7 @@ EOF
     fi
 
 
-    cat <<EOF >> "$APP_DIR/${application}_ctl.sh"
+    cat <<EOF >> "$APP_DIR/${cartridge_type}_ctl.sh"
 # Import Environment Variables
 for f in ~/.env/*
 do
@@ -355,7 +330,7 @@ done
 app_ctl.sh \$1
 EOF
 
-    chmod +x "$APP_DIR/${application}_ctl.sh" || \
+    chmod +x "$APP_DIR/${cartridge_type}_ctl.sh" || \
         error "Failed to chmod new application scripts" 122
 
 }
