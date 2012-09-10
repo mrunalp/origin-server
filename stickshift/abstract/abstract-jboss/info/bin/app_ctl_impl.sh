@@ -4,10 +4,9 @@ source "/etc/stickshift/stickshift-node.conf"
 source ${CARTRIDGE_BASE_PATH}/abstract/info/lib/util
 
 # Import Environment Variables
-for f in ~/.env/*
-do
-    . $f
-done
+for f in ~/.env/*; do . $f; done
+
+cartridge_type=$(get_cartridge_name_from_path)
 
 if ! [ $# -eq 1 ]
 then
@@ -15,17 +14,15 @@ then
     exit 1
 fi
 
-CART_NAME=$(get_cartridge_name_from_path)
-CART_NS=$(get_cartridge_namespace_from_path)
-CART_DIR=$(get_env_var_dynamic "OPENSHIFT_${CART_NS}_CART_DIR")
+CART_DIR=$OPENSHIFT_HOMEDIR/$cartridge_type
 
-APP_JBOSS=${CART_DIR}/${CART_NAME}
+APP_JBOSS=${CART_DIR}/${cartridge_type}
 APP_JBOSS_TMP_DIR="$APP_JBOSS"/standalone/tmp
 APP_JBOSS_BIN_DIR="$APP_JBOSS"/bin
 
 # For debugging, capture script output into app tmp dir
-exec 4>&1 > /dev/null 2>&1  # Link file descriptor 4 with stdout, saves stdout.
-exec > "$APP_JBOSS_TMP_DIR/${CARTRIDGE_TYPE}-${OPENSHIFT_GEAR_NAME}_ctl-$1.log" 2>&1
+#exec 4>&1 > /dev/null 2>&1  # Link file descriptor 4 with stdout, saves stdout.
+#exec > "$APP_JBOSS_TMP_DIR/${cartridge_type}-${OPENSHIFT_GEAR_NAME}_ctl-$1.log" 2>&1
 
 # Kill the process given by $1 and its children
 killtree() {
@@ -77,7 +74,7 @@ function start_app() {
         if isrunning; then
             echo "Application is already running" 1>&2
         else
-            src_user_hook pre_start_${CARTRIDGE_TYPE}
+            src_user_hook pre_start_${cartridge_type}
             set_app_state started
             # Start
             jopts="${JAVA_OPTS}"
@@ -89,7 +86,7 @@ function start_app() {
                 echo "Timed out waiting for http listening port"
                 exit 1
             fi
-            run_user_hook post_start_${CARTRIDGE_TYPE}
+            run_user_hook post_start_${cartridge_type}
         fi
     fi
 }
@@ -100,11 +97,11 @@ function stop_app() {
         jbpid=$(cat $JBOSS_PID_FILE);
         echo "Application($jbpid) is already stopped" 1>&2
     elif [ -f "$JBOSS_PID_FILE" ]; then
-        src_user_hook pre_stop_${CARTRIDGE_TYPE}
+        src_user_hook pre_stop_${cartridge_type}
         pid=$(cat $JBOSS_PID_FILE);
         echo "Sending SIGTERM to jboss:$pid ..." 1>&2
         killtree $pid
-        run_user_hook post_stop_${CARTRIDGE_TYPE}
+        run_user_hook post_stop_${cartridge_type}
     else 
         echo "Failed to locate JBOSS PID File" 1>&2
     fi
@@ -147,7 +144,7 @@ case "$1" in
     ;;
     status)
         # Restore stdout and close file descriptor #4
-        exec 1>&4 4>&-
+        #exec 1>&4 4>&-
         
         if ! isrunning; then
             echo "Application '${OPENSHIFT_GEAR_NAME}' is either stopped or inaccessible"
