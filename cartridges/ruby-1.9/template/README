@@ -43,9 +43,6 @@ OpenShift provides several environment variables to reference for ease
 of use.  The following list are some common variables but far from exhaustive:
 
     ENV['OPENSHIFT_GEAR_NAME']  - Application name
-    ENV['OPENSHIFT_RUBY_CART_DIR']   - Application dir
-    ENV['OPENSHIFT_RUBY_DATA_DIR']  - For persistent storage (between pushes)
-    ENV['OPENSHIFT_RUBY_TMP_DIR']   - Temp storage (unmodified files deleted after 10 days)
 
 When embedding a database using 'rhc app cartridge add', you can reference environment
 variables for username, host and password:
