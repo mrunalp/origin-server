@@ -46,9 +46,9 @@ fi
 
 create_cartridge_instance_dir "$cartridge_type"
 create_app_dir_symlink "$cartridge_type"
-RUBYCART_INSTANCE_DIR=$(get_cartridge_instance_dir "$cartridge_type")
+cart_instance_dir=$(get_cartridge_instance_dir "$cartridge_type")
 
-pushd "$RUBYCART_INSTANCE_DIR" > /dev/null
+pushd "$cart_instance_dir" > /dev/null
 create_standard_app_dirs
 mkdir conf conf.d logs $APP_REPO_DIR/public $APP_REPO_DIR/tmp
 ln -s /usr/lib64/httpd/modules modules
