@@ -1,5 +1,7 @@
 #!/bin/bash
 
+
+
 source "/etc/stickshift/stickshift-node.conf"
 
 # Creates a jboss instance
@@ -204,7 +206,7 @@ chown -R $user_id.$group_id $JAVA_PREFS_DIR
 create_standard_cart_env_vars
 create_standard_env_vars
 create_standard_env_uservars
-create_standard_network_env_vars
+create_standard_network_env_vars $IP
 create_jboss_network_env_vars
 create_standard_repo_dir_env_var
 if [ -e $APP_HOME/app-root/runtime/repo/.openshift/markers/java7 ];
