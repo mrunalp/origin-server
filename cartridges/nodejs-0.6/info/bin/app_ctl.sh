@@ -15,8 +15,8 @@ DEPRECATED
 }
 
 function _is_node_service_running() {
-    if [ -f $OPENSHIFT_NODEJS_CART_DIR/run/node.pid ]; then
-        node_pid=$( cat $OPENSHIFT_NODEJS_CART_DIR/run/node.pid 2> /dev/null )
+    if [ -f $cartridge_dir/run/node.pid ]; then
+        node_pid=$( cat $cartridge_dir/run/node.pid 2> /dev/null )
         myid=$( id -u )
         if `ps --pid $node_pid 2>&1 | grep node > /dev/null 2>&1`  ||  \
            `pgrep -x node -u $myid > /dev/null 2>&1`; then
@@ -43,7 +43,7 @@ function _status_node_service() {
 
 function _start_node_service() {
     _state=`get_app_state`
-    if [ -f $OPENSHIFT_NODEJS_CART_DIR/run/stop_lock -o idle = "$_state" ]; then
+    if [ -f $cartridge_dir/run/stop_lock -o idle = "$_state" ]; then
         echo "Application is explicitly stopped!  Use 'rhc app start -a ${OPENSHIFT_GEAR_NAME}' to start back up." 1>&2
         return 0
     else
@@ -58,9 +58,9 @@ function _start_node_service() {
 
     #  Got here - it means that we need to start up Node.
 
-    src_user_hook pre_start_${CARTRIDGE_TYPE}
+    src_user_hook pre_start_${cartridge_type}
 
-    envf="$OPENSHIFT_NODEJS_CART_DIR/conf/node.env"
+    envf="$cartridge_dir/conf/node.env"
     logf="$OPENSHIFT_NODEJS_LOG_DIR/node.log"
 
     #  Source environment if it exists.
@@ -95,8 +95,8 @@ function _start_node_service() {
     npid=$!
     popd > /dev/null
     if [ $ret -eq 0 ]; then
-        echo "$npid" > "$OPENSHIFT_NODEJS_CART_DIR/run/node.pid"
-        run_user_hook post_start_${CARTRIDGE_TYPE}
+        echo "$npid" > "$cartridge_dir/run/node.pid"
+        run_user_hook post_start_${cartridge_type}
     else
         echo "Application '$OPENSHIFT_GEAR_NAME' failed to start - $ret" 1>&2
     fi
@@ -105,14 +105,14 @@ function _start_node_service() {
 
 
 function _stop_node_service() {
-    if [ -f $OPENSHIFT_NODEJS_CART_DIR/run/node.pid ]; then
-        node_pid=$( cat $OPENSHIFT_NODEJS_CART_DIR/run/node.pid 2> /dev/null )
+    if [ -f $cartridge_dir/run/node.pid ]; then
+        node_pid=$( cat $cartridge_dir/run/node.pid 2> /dev/null )
     fi
 
     if [ -n "$node_pid" ]; then
         set_app_state stopped
 
-        src_user_hook pre_stop_${CARTRIDGE_TYPE}
+        src_user_hook pre_stop_${cartridge_type}
 
         logf="$OPENSHIFT_NODEJS_LOG_DIR/node.log"
         echo "`date +"$FMT"`: Stopping application '$OPENSHIFT_GEAR_NAME' ..." >> $logf
@@ -133,9 +133,9 @@ function _stop_node_service() {
         fi
 
         echo "`date +"$FMT"`: Stopped Node application '$OPENSHIFT_GEAR_NAME'" >> $logf
-        rm -f $OPENSHIFT_NODEJS_CART_DIR/run/node.pid
+        rm -f $cartridge_dir/run/node.pid
 
-        run_user_hook post_stop_${CARTRIDGE_TYPE}
+        run_user_hook post_stop_${cartridge_type}
     else
         if `pgrep -x node -u $(id -u)  > /dev/null 2>&1`; then
             echo "Warning: Application '$OPENSHIFT_GEAR_NAME' Node server exists without a pid file.  Use force-stop to kill." 1>&2
@@ -170,6 +170,9 @@ source ${CARTRIDGE_BASE_PATH}/abstract/info/lib/util
 for f in ~/.env/*; do
     . $f
 done
+
+cartridge_type="nodejs-0.6"
+cartridge_dir=$OPENSHIFT_HOMEDIR/$cartridge_type
 
 translate_env_vars
 
