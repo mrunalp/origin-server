@@ -89,7 +89,7 @@ chown $user_id.$group_id -R "$APP_HOME"/.npm "$APP_HOME"/.npmrc  \
 create_standard_cart_env_vars
 create_standard_env_vars
 create_standard_env_uservars
-create_standard_network_env_vars
+create_standard_network_env_vars $IP
 create_standard_repo_dir_env_var
 create_standard_path_env_var
 
