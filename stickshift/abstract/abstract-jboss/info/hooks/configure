@@ -116,11 +116,9 @@ mkdir -p $M2_DIR
 JAVA_PREFS_DIR=`echo $APP_HOME/.java | tr -s /`
 mkdir -p $JAVA_PREFS_DIR
 
-# Redirect the configure script output for debugging
 APP_JBOSS_TMP_DIR="$APP_JBOSS"/standalone/tmp
 mkdir -p ${APP_JBOSS_TMP_DIR}
-logfile=${APP_JBOSS_TMP_DIR}/${cartridge_type}-configure-$$.log
-exec > $logfile 2>&1
+
 
 #
 # Find an open localhost IP

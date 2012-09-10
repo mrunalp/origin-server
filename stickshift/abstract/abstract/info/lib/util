@@ -9,16 +9,6 @@ function source_if_exists {
     return 0
 }
 
- 
-function assert_not_empty {
-    var_name=$1
-    var_val=$(get_env_var_dynamic $var_name)
-
-    if [ -z "$var_val" ]; then
-        echo "ASSERTION FAILURE: $var_name should not be empty"
-        exit 1
-    fi
-}
 
 # Public: Start all processes in a given gear
 #
@@ -110,8 +100,6 @@ function source_if_exists {
 
 function get_cartridge_instance_dir {
     cartridge_type=$(get_cartridge_name_from_path)
-    assert_not_empty "cartridge_type"
-
     carttype=${1:-$cartridge_type}
     if [ -n "$carttype" ]; then
         echo "$APP_HOME/$carttype"
@@ -187,7 +175,6 @@ function convert_cart_name_to_namespace_id {
 #
 function get_framework_run_dir() {
     uuid=$1
-       
     for env_var in `ls /var/lib/stickshift/$uuid/.env/{OPENSHIFT_PHP_RUN_DIR,OPENSHIFT_PERL_RUN_DIR,OPENSHIFT_PYTHON_RUN_DIR,OPENSHIFT_RUBY_RUN_DIR,OPENSHIFT_JBOSSAS_RUN_DIR,OPENSHIFT_JBOSSEAP_RUN_DIR,OPENSHIFT_NODEJS_RUN_DIR,OPENSHIFT_ZEND_RUN_DIR} 2> /dev/null`; do
         source $env_var
         get_env_var_dynamic $(basename $env_var)
@@ -199,7 +186,6 @@ function get_framework_run_dir() {
 #
 function get_framework_ctl_script() {
     uuid=$1
-       
     for env_var in `ls /var/lib/stickshift/$uuid/.env/{OPENSHIFT_PHP_CART_CTL_SCRIPT,OPENSHIFT_PERL_CART_CTL_SCRIPT,OPENSHIFT_PYTHON_CART_CTL_SCRIPT,OPENSHIFT_RUBY_CART_CTL_SCRIPT,OPENSHIFT_JBOSSAS_CART_CTL_SCRIPT,OPENSHIFT_JBOSSEAP_CART_CTL_SCRIPT,OPENSHIFT_NODEJS_CART_CTL_SCRIPT,OPENSHIFT_ZEND_CART_CTL_SCRIPT} 2> /dev/null`; do
         source $env_var
         get_env_var_dynamic $(basename $env_var)
@@ -219,8 +205,6 @@ function only_cart_on_gear() {
 #
 function create_standard_cart_env_vars {
     cartridge_type=$(get_cartridge_name_from_path)
-    assert_not_empty "cartridge_type"
-
     CART_NS=$(convert_cart_name_to_namespace_id $cartridge_type)
     cinstancedir=$(get_cartridge_instance_dir)
     echo "export OPENSHIFT_${CART_NS}_LOG_DIR='$cinstancedir/logs/'" > \
@@ -260,7 +244,6 @@ function create_standard_network_env_vars {
 function create_cart_network_env_vars {
     CART_IP=$1
     CART_PORT=${2:-8080}
-    assert_not_empty "cartridge_type"
     CART_NS=$(convert_cart_name_to_namespace_id $cartridge_type)
 
     echo "export OPENSHIFT_${CART_NS}_INTERNAL_IP='$CART_IP'" > $APP_HOME/.env/OPENSHIFT_${CART_NS}_IP
@@ -298,7 +281,6 @@ function print_sed_exp_replace_env_var {
 
                 sed_exp="${sed_exp} -e s/\${env.${variable_name}}/${variable_val}/g"
         done
-        
         printf "%s\n" "$sed_exp"
 }
 
@@ -311,8 +293,6 @@ function create_standard_app_dirs {
 
 function create_cartridge_instance_dir {
     cartridge_type=$(get_cartridge_name_from_path)
-    assert_not_empty "cartridge_type"
-
     carttype=${1:-$cartridge_type}
     if [ -n "$carttype" ]; then
         mkdir -p "$APP_HOME/$carttype"
@@ -330,12 +310,10 @@ function create_app_dir_symlink {
 # Create simple application start / stop script
 function create_app_ctl_script {
     rm -f "$APP_DIR/${application}_ctl.sh"
-    
     cat <<EOF >> "$APP_DIR/${application}_ctl.sh"
 #!/bin/bash -e
 
 EOF
-    
     if [ "$1" ]; then
         cat <<EOF >> "$APP_DIR/${application}_ctl.sh"
 # Expose which cartridge created the ctl script
@@ -390,8 +368,6 @@ function secure_conf_dirs {
 
 function check_cartridge_dir_doesnt_exist {
     cartridge_type=$(get_cartridge_name_from_path)
-    assert_not_empty "cartridge_type"
-
     if [ -d "$APP_HOME/$cartridge_type" ]; then
         error "${application}. Cartridge directory $APP_HOME/$cartridge_type already exists." 132
     fi
@@ -410,8 +386,6 @@ function rm_app_dir {
 
 function rm_cartridge_instance_dir {
     cartridge_type=$(get_cartridge_name_from_path)
-    assert_not_empty "cartridge_type"
-
     ctype=${1:-$cartridge_type}
     [ -n "$ctype" ]  &&  runcon -l s0-s0:c0.c1023 rm -rf "$APP_HOME/$ctype"
 }
@@ -507,8 +481,6 @@ function cart_props {
 
 function setup_configure {
     cartridge_type=$(get_cartridge_name_from_path)
-    assert_not_empty "cartridge_type"
-
     source ${CARTRIDGE_BASE_PATH}/abstract/info/lib/git
     source ${CARTRIDGE_BASE_PATH}/abstract/info/lib/network
     source ${CARTRIDGE_BASE_PATH}/abstract/info/lib/apache
@@ -536,8 +508,6 @@ function setup_configure {
 
 function setup_deconfigure {
     cartridge_type=$(get_cartridge_name_from_path)
-    assert_not_empty "cartridge_type"
-
     source ${CARTRIDGE_BASE_PATH}/abstract/info/lib/git
     source ${CARTRIDGE_BASE_PATH}/abstract/info/lib/network
     source ${CARTRIDGE_BASE_PATH}/abstract/info/lib/apache
@@ -554,8 +524,6 @@ function setup_deconfigure {
 
 function setup_embedded_configure {
     cartridge_type=$(get_cartridge_name_from_path)
-    assert_not_empty "cartridge_type"
-
     source ${CARTRIDGE_BASE_PATH}/abstract/info/lib/network
     source ${CARTRIDGE_BASE_PATH}/abstract/info/lib/apache
 
@@ -577,8 +545,6 @@ function setup_embedded_configure {
 
 function setup_embedded_deconfigure {
     cartridge_type=$(get_cartridge_name_from_path)
-    assert_not_empty "cartridge_type"
-
     source ${CARTRIDGE_BASE_PATH}/abstract/info/lib/network
     source ${CARTRIDGE_BASE_PATH}/abstract/info/lib/apache
 
@@ -595,7 +561,6 @@ function setup_basic_hook {
     uuid=`basename $3`
     namespace="$2"
     application="$1"
-    
     setup_basic_vars
 }
 
@@ -607,7 +572,6 @@ function setup_basic_vars {
 
 function setup_app_dir_vars {
     cartridge_type=$(get_cartridge_name_from_path)
-    assert_not_empty "cartridge_type"
 
     APP_HOME="$GEAR_BASE_DIR/$uuid/"
     APP_DIR=`echo $APP_HOME/$cartridge_type | tr -s /`
