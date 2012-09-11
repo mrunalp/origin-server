@@ -6,6 +6,8 @@ do
     . $f
 done
 
+cart_instance_dir=$OPENSHIFT_HOMEDIR/python-2.6
+
 if `echo $OPENSHIFT_GEAR_DNS | grep -q .stg.rhcloud.com` || `echo $OPENSHIFT_GEAR_DNS | grep -q .dev.rhcloud.com`
 then 
 	OPENSHIFT_PYTHON_MIRROR="http://mirror1.stg.rhcloud.com/mirror/python/web/simple"
@@ -18,7 +20,7 @@ fi
 if [ -f "${OPENSHIFT_REPO_DIR}/.openshift/markers/force_clean_build" ]
 then
     echo ".openshift/markers/force_clean_build found!  Recreating virtenv" 1>&2
-    rm -rf "${OPENSHIFT_PYTHON_CART_DIR}"/virtenv/*
+    rm -rf $cart_instance_dir/virtenv/*
 fi
 
 if [ -f ${OPENSHIFT_REPO_DIR}setup.py ]
