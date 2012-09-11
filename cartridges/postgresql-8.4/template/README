@@ -16,7 +16,6 @@ OpenShift provides several environment variables to reference for ease
 of use.  The following list are some common variables but far from exhaustive:
 
     os.environ['OPENSHIFT_GEAR_NAME']           - Application name
-    os.environ['OPENSHIFT_POSTGRESQL_CART_DIR'] - Application dir
     os.environ['OPENSHIFT_DATA_DIR']            - For persistent storage (between pushes)
     os.environ['OPENSHIFT_TMP_DIR']             - Temp storage (unmodified files deleted after 10 days)
 

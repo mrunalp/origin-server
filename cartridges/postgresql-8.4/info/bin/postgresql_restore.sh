@@ -47,7 +47,7 @@ then
         echo "Error: Could not import PostgreSQL Database!  Continuing..." 1>&2
         echo 1>&2
     fi
-    $OPENSHIFT_POSTGRESQL_DB_DUMP_CLEANUP
+    $CART_INFO_DIR/bin/postgresql_dump.sh
 
 else
     echo "PostgreSQL restore attempted but no dump found!" 1>&2
