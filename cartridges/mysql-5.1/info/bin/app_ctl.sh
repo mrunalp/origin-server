@@ -1,8 +1,7 @@
 #!/bin/bash -e
 
 source /etc/stickshift/stickshift-node.conf
-CART_NAME="mysql"
-CART_VERSION="5.1"
+cartridge_type="mysql-5.1"
 source ${CARTRIDGE_BASE_PATH}/abstract/info/lib/util
 
 # Import Environment Variables
@@ -19,9 +18,7 @@ fi
 
 validate_run_as_user
 
-. app_ctl_pre.sh
-
-mysql_ctl="$OPENSHIFT_HOMEDIR/$CART_NAME-$CART_VERSION/${OPENSHIFT_GEAR_NAME}_mysql_ctl.sh"
+mysql_ctl="${CARTRIDGE_BASE_PATH}/$cartridge_type/info/bin/mysql_ctl.sh"
 
 case "$1" in
     start)                    "$mysql_ctl" start    ;;

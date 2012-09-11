@@ -84,9 +84,6 @@ function source_if_exists {
 }
 
 function get_cartridge_instance_dir {
-    cartridge_type=$(get_cartridge_name_from_path)
-    assert_not_empty "cartridge_type"
-
     carttype=${1:-$cartridge_type}
     if [ -n "$carttype" ]; then
         echo "$APP_HOME/$carttype"
@@ -193,11 +190,6 @@ function only_cart_on_gear() {
 # Create cartridge specific variables
 #
 function create_standard_cart_env_vars {
-    cartridge_type=$(get_cartridge_name_from_path)
-    assert_not_empty "cartridge_type"
-
-    CART_NS=$(convert_cart_name_to_namespace_id $cartridge_type)
-    cinstancedir=$(get_cartridge_instance_dir)
 #    echo "export OPENSHIFT_${CART_NS}_LOG_DIR='$cinstancedir/logs/'" > \
 #                                      $APP_HOME/.env/OPENSHIFT_${CART_NS}_LOG_DIR
 #    echo "export OPENSHIFT_${CART_NS}_CART_CTL_SCRIPT='$cinstancedir/${application}_ctl.sh'" > \
@@ -285,9 +277,6 @@ function create_standard_app_dirs {
 }
 
 function create_cartridge_instance_dir {
-    cartridge_type=$(get_cartridge_name_from_path)
-    assert_not_empty "cartridge_type"
-
     carttype=${1:-$cartridge_type}
     if [ -n "$carttype" ]; then
         mkdir -p "$APP_HOME/$carttype"
@@ -364,9 +353,6 @@ function secure_conf_dirs {
 }
 
 function check_cartridge_dir_doesnt_exist {
-    cartridge_type=$(get_cartridge_name_from_path)
-    assert_not_empty "cartridge_type"
-
     if [ -d "$APP_HOME/$cartridge_type" ]; then
         error "${application}. Cartridge directory $APP_HOME/$cartridge_type already exists." 132
     fi
@@ -384,9 +370,6 @@ function rm_app_dir {
 }
 
 function rm_cartridge_instance_dir {
-    cartridge_type=$(get_cartridge_name_from_path)
-    assert_not_empty "cartridge_type"
-
     ctype=${1:-$cartridge_type}
     [ -n "$ctype" ]  &&  runcon -l s0-s0:c0.c1023 rm -rf "$APP_HOME/$ctype"
 }
@@ -481,9 +464,6 @@ function cart_props {
 }
 
 function setup_configure {
-    cartridge_type=$(get_cartridge_name_from_path)
-    assert_not_empty "cartridge_type"
-
     source ${CARTRIDGE_BASE_PATH}/abstract/info/lib/git
     source ${CARTRIDGE_BASE_PATH}/abstract/info/lib/network
     source ${CARTRIDGE_BASE_PATH}/abstract/info/lib/apache
@@ -510,9 +490,6 @@ function setup_configure {
 }
 
 function setup_deconfigure {
-    cartridge_type=$(get_cartridge_name_from_path)
-    assert_not_empty "cartridge_type"
-
     source ${CARTRIDGE_BASE_PATH}/abstract/info/lib/git
     source ${CARTRIDGE_BASE_PATH}/abstract/info/lib/network
     source ${CARTRIDGE_BASE_PATH}/abstract/info/lib/apache
@@ -528,9 +505,6 @@ function setup_deconfigure {
 }
 
 function setup_embedded_configure {
-    cartridge_type=$(get_cartridge_name_from_path)
-    assert_not_empty "cartridge_type"
-
     source ${CARTRIDGE_BASE_PATH}/abstract/info/lib/network
     source ${CARTRIDGE_BASE_PATH}/abstract/info/lib/apache
 
@@ -551,9 +525,6 @@ function setup_embedded_configure {
 }
 
 function setup_embedded_deconfigure {
-    cartridge_type=$(get_cartridge_name_from_path)
-    assert_not_empty "cartridge_type"
-
     source ${CARTRIDGE_BASE_PATH}/abstract/info/lib/network
     source ${CARTRIDGE_BASE_PATH}/abstract/info/lib/apache
 
@@ -581,9 +552,6 @@ function setup_basic_vars {
 }
 
 function setup_app_dir_vars {
-    cartridge_type=$(get_cartridge_name_from_path)
-    assert_not_empty "cartridge_type"
-
     APP_HOME="$GEAR_BASE_DIR/$uuid/"
     APP_DIR=`echo $APP_HOME/$cartridge_type | tr -s /`
     APP_REPO_DIR="$APP_HOME/app-root/repo"

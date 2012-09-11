@@ -22,6 +22,8 @@ then
     exit 15
 fi
 
+cartridge_type="mysql-5.1"
+
 MYSQL_DIR="$OPENSHIFT_HOMEDIR/mysql-5.1/"
 
 source /etc/stickshift/stickshift-node.conf
@@ -42,7 +44,9 @@ isrunning() {
 }
 
 start() {
-    [ "$OPENSHIFT_GEAR_TYPE" == "mysql-5.1" ] && set_app_state started
+    if only_cart_on_gear $cartridge_type; then
+        set_app_state started
+    fi
 
     if ! isrunning
     then
@@ -56,7 +60,10 @@ start() {
 }
 
 stop() {
-    [ "$OPENSHIFT_GEAR_TYPE" == "mysql-5.1" ] && set_app_state stopped
+
+    if only_cart_on_gear $cartridge_type; then
+        set_app_state stopped
+    fi
 
     if [ -f $MYSQL_DIR/pid/mysql.pid ]; then
         src_user_hook pre_stop_mysql-5.1

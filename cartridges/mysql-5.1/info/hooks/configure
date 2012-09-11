@@ -76,7 +76,7 @@ popd > /dev/null
 #
 # Create simple mysql start / stop script
 #
-ln -s $CART_INFO_DIR/bin/mysql_ctl.sh $MYSQL_DIR/${application}_mysql_ctl.sh
+#ln -s $CART_INFO_DIR/bin/mysql_ctl.sh $MYSQL_DIR/${application}_mysql_ctl.sh
 
 #
 # Setup Permissions
@@ -85,13 +85,12 @@ ln -s $CART_INFO_DIR/bin/mysql_ctl.sh $MYSQL_DIR/${application}_mysql_ctl.sh
 secure_app_dir
 secure_cart_instance_dir
 # Secure script and root dir (so they can't chown the script"
-chmod +x "$MYSQL_DIR/"*.sh || error "Failed to chmod new application scripts" 122
+#chmod +x "$MYSQL_DIR/"*.sh || error "Failed to chmod new application scripts" 122
 observe_setup_var_lib_dir "$APP_HOME/app-root/"
 observe_setup_var_lib_dir "$APP_DIR"
 observe_setup_var_lib_dir "$MYSQL_DIR"
 
-export OPENSHIFT_MYSQL_DB_CTL_SCRIPT="$MYSQL_DIR/${application}_mysql_ctl.sh"
-start_db
+start_database $cartridge_type
 
 # Generate a password with no o's O's or 0's
 password=$(generate_password)
@@ -106,11 +105,6 @@ echo "export OPENSHIFT_MYSQL_DB_HOST='$IP'" > $APP_HOME/.env/OPENSHIFT_MYSQL_DB_
 echo "export OPENSHIFT_MYSQL_DB_PORT='3306'" > $APP_HOME/.env/OPENSHIFT_MYSQL_DB_PORT
 echo "export OPENSHIFT_MYSQL_DB_SOCKET='${MYSQL_DIR}/socket/mysql.sock'" > $APP_HOME/.env/OPENSHIFT_MYSQL_DB_SOCKET
 echo "export OPENSHIFT_MYSQL_DB_URL='mysql://admin:$password@$IP:3306/'" > $APP_HOME/.env/OPENSHIFT_MYSQL_DB_URL
-echo "export OPENSHIFT_MYSQL_DB_CTL_SCRIPT='$MYSQL_DIR/${application}_mysql_ctl.sh'" > $APP_HOME/.env/OPENSHIFT_MYSQL_DB_CTL_SCRIPT
-echo "export OPENSHIFT_MYSQL_DB_DUMP='$CART_INFO_DIR/bin/mysql_dump.sh'" > $APP_HOME/.env/OPENSHIFT_MYSQL_DB_DUMP
-echo "export OPENSHIFT_MYSQL_DB_DUMP_CLEANUP='$CART_INFO_DIR/bin/mysql_cleanup.sh'" > $APP_HOME/.env/OPENSHIFT_MYSQL_DB_DUMP_CLEANUP
-echo "export OPENSHIFT_MYSQL_DB_RESTORE='$CART_INFO_DIR/bin/mysql_restore.sh'" > $APP_HOME/.env/OPENSHIFT_MYSQL_DB_RESTORE
-echo "export OPENSHIFT_MYSQL_DB_EMBEDDED_TYPE='mysql-5.1'" > $APP_HOME/.env/OPENSHIFT_MYSQL_DB_EMBEDDED_TYPE
 
 ## Setup user
 dbname=${OPENSHIFT_APP_NAME:-$application}

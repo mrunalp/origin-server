@@ -27,6 +27,7 @@ application="$1"
 uuid=$3
 
 setup_basic_vars
+cartridge_type="mysql-5.1"
 
 CART_INFO_DIR=${CARTRIDGE_BASE_PATH}/embedded/mysql-5.1/info
 source ${CART_INFO_DIR}/lib/util
@@ -41,8 +42,7 @@ IP=$OPENSHIFT_INTERNAL_IP
 . $APP_HOME/.env/OPENSHIFT_MYSQL_DB_PASSWORD
 . $APP_HOME/.env/OPENSHIFT_MYSQL_DB_USERNAME
 
-OPENSHIFT_MYSQL_DB_CTL_SCRIPT="$MYSQL_DIR/${application}_mysql_ctl.sh"
-start_db
+start_database $cartridge_type
 
     echo "
 DELETE FROM user WHERE Host<>'$IP' and User='$OPENSHIFT_MYSQL_DB_USERNAME';
