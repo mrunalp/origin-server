@@ -9,7 +9,9 @@ do
     . $f
 done
 
-export APPDIR="${OPENSHIFT_GEAR_DIR}"
+cart_instance_dir=$OPENSHIFT_HOMEDIR/python-2.6
+
+export APPDIR="${cart_instance_dir}"
 
 # Federate call to abstract httpd.
 ${CARTRIDGE_BASE_PATH}/abstract-httpd/info/bin/app_ctl.sh "$@"
