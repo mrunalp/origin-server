@@ -46,7 +46,6 @@ fi
 #
 
 create_cartridge_instance_dir "$cartridge_type"
-create_app_dir_symlink "$cartridge_type"
 DIY_INSTANCE_DIR=$(get_cartridge_instance_dir "$cartridge_type")
 pushd "$DIY_INSTANCE_DIR" > /dev/null
 create_standard_app_dirs
@@ -78,7 +77,7 @@ observe_setup_cart_instance_dir
 create_standard_cart_env_vars
 create_standard_env_vars
 create_standard_env_uservars
-create_standard_network_env_vars
+create_standard_network_env_vars $IP
 create_standard_repo_dir_env_var
 echo "export PATH=$CART_INFO_DIR/bin/:$CARTRIDGE_BASE_PATH/abstract/info/bin/:$PATH" > $APP_HOME/.env/PATH
 
