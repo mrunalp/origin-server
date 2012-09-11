@@ -43,5 +43,5 @@ if [ "$_state" = "stopped" ] || [ "$_state" = "idle" ]
 then
     start_app
 else
-    run_as_user "$APP_DIR/${cartridge_type}_ctl.sh restart"
+    run_as_user "${CARTRIDGE_BASE_PATH}/${cartridge_type}/info/bin/app_ctl.sh restart" 
 fi
