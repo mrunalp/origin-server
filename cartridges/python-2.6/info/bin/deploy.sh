@@ -12,12 +12,12 @@ source ${CARTRIDGE_BASE_PATH}/abstract/info/lib/util
 start_dbs
 
 # Run build
-#virtualenv --relocatable ${OPENSHIFT_PYTHON_CART_DIR}virtenv
-#. ./bin/activate
 
-if [ -d ${OPENSHIFT_PYTHON_CART_DIR}virtenv ]
+cart_instance_dir=$OPENSHIFT_HOMEDIR/python-2.6
+
+if [ -d $cart_instance_dir/virtenv ]
 then 
-    pushd ${OPENSHIFT_PYTHON_CART_DIR}virtenv > /dev/null
+    pushd $cart_instance_dir/virtenv > /dev/null
     . ./bin/activate
     popd > /dev/null
 fi
