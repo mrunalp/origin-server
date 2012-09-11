@@ -1,6 +1,6 @@
 #!/bin/bash
 
-CONFIG_DIR="$CARTRIDGE_BASE_PATH/$OPENSHIFT_GEAR_TYPE/info/configuration"
+CONFIG_DIR="$CARTRIDGE_BASE_PATH/diy-0.1/info/configuration"
 OPENSHIFT_MAVEN_MIRROR="$CONFIG_DIR/settings.base.xml"
 if `echo $OPENSHIFT_GEAR_DNS | grep -q .stg.rhcloud.com` || `echo $OPENSHIFT_GEAR_DNS | grep -q .dev.rhcloud.com`
 then 
