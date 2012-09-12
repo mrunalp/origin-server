@@ -1,5 +1,6 @@
 #!/bin/bash
 
+export cartridge_type="python-2.6"
 source "/etc/stickshift/stickshift-node.conf"
 source ${CARTRIDGE_BASE_PATH}/abstract/info/lib/util
 
@@ -9,7 +10,7 @@ do
     . $f
 done
 
-cart_instance_dir=$OPENSHIFT_HOMEDIR/python-2.6
+cart_instance_dir=$OPENSHIFT_HOMEDIR/${cartridge_type}
 
 export APPDIR="${cart_instance_dir}"
 
