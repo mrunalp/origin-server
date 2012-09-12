@@ -190,10 +190,8 @@ function only_cart_on_gear() {
 # Create cartridge specific variables
 #
 function create_standard_cart_env_vars {
-#    echo "export OPENSHIFT_${CART_NS}_LOG_DIR='$cinstancedir/logs/'" > \
-#                                      $APP_HOME/.env/OPENSHIFT_${CART_NS}_LOG_DIR
-#    echo "export OPENSHIFT_${CART_NS}_CART_CTL_SCRIPT='$cinstancedir/${application}_ctl.sh'" > \
-#                                      $APP_HOME/.env/OPENSHIFT_${CART_NS}_CART_CTL_SCRIPT
+    echo "export OPENSHIFT_${CART_NS}_LOG_DIR='$cinstancedir/logs/'" > \
+                                      $APP_HOME/.env/OPENSHIFT_${CART_NS}_LOG_DIR
     echo "export OPENSHIFT_GEAR_TYPE='$cartridge_type'" > \
                                       $APP_HOME/.env/OPENSHIFT_GEAR_TYPE
 }
