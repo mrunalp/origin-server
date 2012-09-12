@@ -1,5 +1,6 @@
 #!/bin/bash
 
+cartridge_type='cron-1.4'
 source "/etc/stickshift/stickshift-node.conf"
 source ${CARTRIDGE_BASE_PATH}/abstract/info/lib/util
 
@@ -7,9 +8,10 @@ source ${CARTRIDGE_BASE_PATH}/abstract/info/lib/util
 SERVICE_NAME=cron
 CART_NAME=cron
 CART_VERSION=1.4
-CART_DIRNAME=${CART_NAME}-$CART_VERSION
+CART_DIRNAME=$cartridge_type
 CART_INSTALL_DIR=${CARTRIDGE_BASE_PATH}
 CART_INFO_DIR=$CART_INSTALL_DIR/embedded/$CART_DIRNAME/info
+
 
 function _are_cronjobs_enabled() {
    [ -f $CART_INSTANCE_DIR/run/jobs.enabled ]  &&  return 0
@@ -91,7 +93,7 @@ done
 
 # Cartridge instance dir and control script name.
 CART_INSTANCE_DIR="$OPENSHIFT_HOMEDIR/$CART_DIRNAME"
-CTL_SCRIPT="$CART_INSTANCE_DIR/${OPENSHIFT_GEAR_NAME}_${CART_NAME}_ctl.sh"
+CTL_SCRIPT="$CART_INSTANCE_DIR/${OPENSHIFT_APP_NAME}_${CART_NAME}_ctl.sh"
 source ${CART_INFO_DIR}/lib/util
 
 #  Ensure logged in as user.
