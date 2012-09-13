@@ -42,7 +42,6 @@ fi
 # Create the core of the application
 #
 create_cartridge_instance_dir "$cartridge_type"
-create_app_dir_symlink "$cartridge_type"
 NODEJS_INSTANCE_DIR=$(get_cartridge_instance_dir "$cartridge_type")
 pushd "$NODEJS_INSTANCE_DIR" > /dev/null
 create_standard_app_dirs
