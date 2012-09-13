@@ -61,8 +61,6 @@ populate_repo_dir
 #
 IP=`find_open_ip $uid $uuid`
 
-create_app_ctl_script "$cartridge_type"
-
 secure_app_dir
 
 secure_cart_instance_dir
