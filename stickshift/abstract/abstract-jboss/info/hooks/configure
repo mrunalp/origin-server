@@ -131,7 +131,6 @@ IP=`find_open_ip $uid $uuid`
 # Create jboss base for application, every app gets its own jboss instance
 #
 create_cartridge_instance_dir "$cartridge_type"
-create_app_dir_symlink "$cartridge_type"
 pushd "$JBOSS_INSTANCE_DIR" > /dev/null
 create_standard_app_dirs
 mkdir -p ${jboss_version}/{bin,standalone/configuration}

@@ -186,20 +186,6 @@ function create_standard_cart_env_vars {
                                       $APP_HOME/.env/OPENSHIFT_GEAR_TYPE
 }
 
-function create_standard_env_vars {
-#    echo "export OPENSHIFT_GEAR_DIR='$APP_DIR/'" > \
-#                                      $APP_HOME/.env/OPENSHIFT_GEAR_DIR
-#    echo "export OPENSHIFT_LOG_DIR='$APP_DIR/logs/'" > \
-#                                      $APP_HOME/.env/OPENSHIFT_LOG_DIR
-#    echo "export OPENSHIFT_RUN_DIR='$APP_DIR/run/'" > \
-#                                      $APP_HOME/.env/OPENSHIFT_RUN_DIR
-#    echo "export OPENSHIFT_GEAR_TYPE='$cartridge_type'" > \
-#                                      $APP_HOME/.env/OPENSHIFT_GEAR_TYPE
-#    echo "export OPENSHIFT_RUNTIME_DIR='$APP_DIR/runtime/'" > \
-#                                      $APP_HOME/.env/OPENSHIFT_RUNTIME_DIR
-    true
-}
-
 function create_standard_env_uservars {
     create_env_uservars_dir
     create_env_uservars_script
@@ -269,46 +255,6 @@ function create_cartridge_instance_dir {
     else
         error "${application}. Cartridge type '$carttype' not set." 141
     fi
-}
-
-# FIXME: remove function when all cartridge configure hooks refactored
-function create_app_dir_symlink {
-    # ln -s "$1" "$APP_DIR"
-    :
-}
-
-# Create simple application start / stop script
-function create_app_ctl_script {
-    rm -f "$APP_DIR/${cartridge_type}_ctl.sh"
-    
-    cat <<EOF >> "$APP_DIR/${cartridge_type}_ctl.sh"
-#!/bin/bash -e
-
-set -x
-
-EOF
-    if [ "$1" ]; then
-        cat <<EOF >> "$APP_DIR/${cartridge_type}_ctl.sh"
-# Expose which cartridge created the ctl script
-export CARTRIDGE_TYPE="$1"
-
-EOF
-    fi
-
-
-    cat <<EOF >> "$APP_DIR/${cartridge_type}_ctl.sh"
-# Import Environment Variables
-for f in ~/.env/*
-do
-    . \$f
-done
-
-app_ctl.sh \$1
-EOF
-
-    chmod +x "$APP_DIR/${cartridge_type}_ctl.sh" || \
-        error "Failed to chmod new application scripts" 122
-
 }
 
 function secure_app_dir {
@@ -852,7 +798,6 @@ function resolve_application_dependencies {
 
 function create_common_env_vars {
     create_standard_cart_env_vars
-    create_standard_env_vars
     create_standard_env_uservars
     create_standard_network_env_vars
     create_standard_repo_dir_env_var
