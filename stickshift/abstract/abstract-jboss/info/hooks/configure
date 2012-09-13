@@ -183,8 +183,6 @@ if [ -f $concrete_configure ]; then
     $concrete_configure $JBOSS_CARTRIDGE_ROOT $APP_JBOSS
 fi
 
-create_app_ctl_script "$cartridge_type"
-
 populate_repo_dir
 
 # Copy the example WAR to the deployments directories
@@ -204,7 +202,6 @@ chown -R $user_id.$group_id $JAVA_PREFS_DIR
 # Create environment variables
 #
 create_standard_cart_env_vars
-create_standard_env_vars
 create_standard_env_uservars
 create_standard_network_env_vars $IP
 create_jboss_network_env_vars

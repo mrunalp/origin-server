@@ -9,7 +9,9 @@ done
 source "/etc/stickshift/stickshift-node.conf"
 source ${CARTRIDGE_BASE_PATH}/abstract/info/lib/util
 
-CONFIG_DIR="$CARTRIDGE_BASE_PATH/$OPENSHIFT_GEAR_TYPE/info/configuration"
+cartridge_type=$(get_cartridge_name_from_path)
+
+CONFIG_DIR="$CARTRIDGE_BASE_PATH/$cartridge_type/info/configuration"
 OPENSHIFT_MAVEN_MIRROR="$CONFIG_DIR/settings.base.xml"
 if `echo $OPENSHIFT_GEAR_DNS | grep -q .stg.rhcloud.com` || `echo $OPENSHIFT_GEAR_DNS | grep -q .dev.rhcloud.com`
 then 
