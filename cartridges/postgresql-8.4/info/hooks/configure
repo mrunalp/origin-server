@@ -81,18 +81,12 @@ chown -R $user_id.$group_id "${CART_INSTANCE_DIR}/data/" || error "Failed to cho
 
 
 #
-# Create simple PostgreSQL start / stop script
-#
-ln -s $CART_INFO_DIR/bin/postgresql_ctl.sh $CART_INSTANCE_DIR/${application}_postgresql_ctl.sh
-
-#
 # Setup Permissions
 #
 
 secure_app_dir
 secure_cart_instance_dir
-# Secure script and root dir (so they can't chown the script"
-chmod +x "$CART_INSTANCE_DIR/"*.sh || error "Failed to chmod new application scripts" 122
+
 observe_setup_var_lib_dir "$APP_HOME/app-root/"
 observe_setup_var_lib_dir "$APP_DIR"
 observe_setup_var_lib_dir "$CART_INSTANCE_DIR"
@@ -110,7 +104,6 @@ echo "export OPENSHIFT_POSTGRESQL_DB_HOST='$IP'" > $APP_HOME/.env/OPENSHIFT_POST
 echo "export OPENSHIFT_POSTGRESQL_DB_PORT='5432'" > $APP_HOME/.env/OPENSHIFT_POSTGRESQL_DB_PORT
 echo "export OPENSHIFT_POSTGRESQL_DB_SOCKET='${CART_INSTANCE_DIR}/socket/postgres.sock'" > $APP_HOME/.env/OPENSHIFT_POSTGRESQL_DB_SOCKET
 echo "export OPENSHIFT_POSTGRESQL_DB_URL='postgresql://admin:$password@$IP:5432/'" > $APP_HOME/.env/OPENSHIFT_POSTGRESQL_DB_URL
-echo "export OPENSHIFT_POSTGRESQL_DB_CTL_SCRIPT='$CART_INSTANCE_DIR/${application}_postgresql_ctl.sh'" > $APP_HOME/.env/OPENSHIFT_POSTGRESQL_DB_CTL_SCRIPT
 
 
 # Setup psql command files
@@ -127,8 +120,7 @@ export OPENSHIFT_POSTGRESQL_DB_USERNAME='admin'
 export OPENSHIFT_POSTGRESQL_DB_PASSWORD="$password"
 export OPENSHIFT_POSTGRESQL_DB_HOST="$IP"
 export OPENSHIFT_POSTGRESQL_DB_PORT='5432'
-export OPENSHIFT_POSTGRESQL_DB_CTL_SCRIPT="$CART_INSTANCE_DIR/${application}_postgresql_ctl.sh"
-start_db
+start_database $cartridge_type
 
 # TODO: rmillner: is the owner $uuid or admin?
 ## Setup user

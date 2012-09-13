@@ -1,8 +1,8 @@
 #!/bin/bash -e
 
+export cartridge_type="postgresql-8.4"
+
 source /etc/stickshift/stickshift-node.conf
-CART_NAME="postgresql"
-CART_VERSION="8.4"
 source ${CARTRIDGE_BASE_PATH}/abstract/info/lib/util
 
 # Import Environment Variables
@@ -19,9 +19,7 @@ fi
 
 validate_run_as_user
 
-. app_ctl_pre.sh
-
-postgresql_ctl="$OPENSHIFT_HOMEDIR/$CART_NAME-$CART_VERSION/${OPENSHIFT_GEAR_NAME}_postgresql_ctl.sh"
+postgresql_ctl="$CARTRIDGE_BASE_PATH/$cartridge_type/info/bin/postgresql_ctl.sh"
 
 case "$1" in
     start)                    "$postgresql_ctl" start    ;;

@@ -22,7 +22,10 @@ done
 
 [ $# -eq 3 ] || print_help
 
+for f in ~/.env/*; do . $f; done
 cartridge_type="postgresql-8.4"
+CART_DIR=$OPENSHIFT_HOMEDIR/$cartridge_type
+
 source "/etc/stickshift/stickshift-node.conf"
 source ${CARTRIDGE_BASE_PATH}/abstract/info/lib/util
 source ${CARTRIDGE_BASE_PATH}/abstract/info/lib/git
@@ -33,9 +36,8 @@ disable_cgroups
 CART_INFO_DIR=${CARTRIDGE_BASE_PATH}/embedded/$cartridge_type/info
 source ${CART_INFO_DIR}/lib/util
 
-CART_INSTANCE_DIR=$(get_cartridge_instance_dir "$cartridge_type")
+CART_INSTANCE_DIR=$OPENSHIFT_HOMEDIR/$cartridge_type
 
-source_if_exists "$APP_HOME/.env/OPENSHIFT_GEAR_TYPE"
 source_if_exists "$APP_HOME/.env/OPENSHIFT_POSTGRESQL_DB_TYPE"
 
 # Just exit if the db type is not postgresql
@@ -62,16 +64,15 @@ source_if_exists "$APP_HOME/.env/OPENSHIFT_POSTGRESQL_DB_USERNAME"
 source_if_exists "$APP_HOME/.env/OPENSHIFT_POSTGRESQL_DB_PASSWORD"
 source_if_exists "$APP_HOME/.env/OPENSHIFT_POSTGRESQL_DB_HOST"
 source_if_exists "$APP_HOME/.env/OPENSHIFT_POSTGRESQL_DB_PORT"
-source_if_exists "$APP_HOME/.env/OPENSHIFT_POSTGRESQL_DB_CTL_SCRIPT"
 
-stop_db
+stop_database $cartridge_type
 confirm_pid_gone "${CART_INSTANCE_DIR}/pid/postgres.pid"
 
 #
 # Remove environment variables
 #
 if [ "$OPENSHIFT_POSTGRESQL_DB_TYPE" = "postgresql" ]; then
-   /bin/rm -f $APP_HOME/.env/OPENSHIFT_POSTGRESQL_DB_USERNAME $APP_HOME/.env/OPENSHIFT_POSTGRESQL_DB_PASSWORD $APP_HOME/.env/OPENSHIFT_POSTGRESQL_DB_TYPE $APP_HOME/.env/OPENSHIFT_POSTGRESQL_DB_HOST $APP_HOME/.env/OPENSHIFT_POSTGRESQL_DB_PORT $APP_HOME/.env/OPENSHIFT_POSTGRESQL_DB_SOCKET $APP_HOME/.env/OPENSHIFT_POSTGRESQL_DB_URL $APP_HOME/.env/OPENSHIFT_POSTGRESQL_DB_CTL_SCRIPT
+   /bin/rm -f $APP_HOME/.env/OPENSHIFT_POSTGRESQL_DB_USERNAME $APP_HOME/.env/OPENSHIFT_POSTGRESQL_DB_PASSWORD $APP_HOME/.env/OPENSHIFT_POSTGRESQL_DB_TYPE $APP_HOME/.env/OPENSHIFT_POSTGRESQL_DB_HOST $APP_HOME/.env/OPENSHIFT_POSTGRESQL_DB_PORT $APP_HOME/.env/OPENSHIFT_POSTGRESQL_DB_SOCKET $APP_HOME/.env/OPENSHIFT_POSTGRESQL_DB_URL
 fi
 
 # For non-embedded (dedicated) postgresql gear, destroy the gear.

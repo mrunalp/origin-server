@@ -18,7 +18,7 @@ export PGPASSWORD="${OPENSHIFT_POSTGRESQL_DB_PASSWORD}"
 
 start_db_as_user 1>&2
 
-echo "$OPENSHIFT_GEAR_NAME" > $OPENSHIFT_DATA_DIR/postgresql_dbname
+echo "postgresql-8.4" > $OPENSHIFT_DATA_DIR/postgresql_dbname
 
 dbuser=${OPENSHIFT_POSTGRESQL_DB_GEAR_UUID:-$OPENSHIFT_GEAR_UUID}
 echo "$dbuser" > $OPENSHIFT_DATA_DIR/postgresql_dbuser

@@ -15,12 +15,12 @@ then
 
     start_db_as_user
 
-    old_dbname=$OPENSHIFT_GEAR_NAME
+    old_dbname="postgresql-8.4"
     old_dbuser=${OPENSHIFT_POSTGRESQL_DB_GEAR_UUID:-$OPENSHIFT_GEAR_UUID}
     [ -f "$OPENSHIFT_DATA_DIR/postgresql_dbname" ] &&  old_dbname=$(cat "$OPENSHIFT_DATA_DIR/postgresql_dbname")
     [ -f "$OPENSHIFT_DATA_DIR/postgresql_dbuser" ] &&  old_dbuser=$(cat "$OPENSHIFT_DATA_DIR/postgresql_dbuser")
 
-    dbname=${OPENSHIFT_GEAR_NAME}
+    dbname="postgresql-8.4"
     dbuser=${OPENSHIFT_POSTGRESQL_DB_GEAR_UUID:-$OPENSHIFT_GEAR_UUID}
 
     # Restore the PostgreSQL databases
