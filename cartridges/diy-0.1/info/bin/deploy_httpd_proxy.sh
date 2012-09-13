@@ -25,7 +25,7 @@ cartridge_type='diy-0.1'
 source "/etc/stickshift/stickshift-node.conf"
 source ${CARTRIDGE_BASE_PATH}/abstract/info/lib/util
 
-cat <<EOF > "/etc/httpd/conf.d/stickshift/${uuid}_${namespace}_${application}/diy-0.1.conf"
+cat <<EOF > "/etc/httpd/conf.d/stickshift/${uuid}_${namespace}_${application}/${cartridge_type}.conf"
   Alias /health $CART_INFO_DIR/configuration/health.html
 EOF
 
