@@ -61,11 +61,6 @@ else
 fi 
 
 #
-# Create simple mongodb start / stop script
-#
-ln -sf $CART_INFO_DIR/bin/mongodb_ctl.sh $MONGODB_DIR/${application}_mongodb_ctl.sh
-
-#
 # Fix permissions
 #
 old_uuid=$(stat -c %U $MONGODB_DIR/etc)
@@ -102,7 +97,6 @@ echo "export OPENSHIFT_MONGODB_DB_TYPE='mongodb'" > $APP_HOME/.env/OPENSHIFT_MON
 echo "export OPENSHIFT_MONGODB_DB_HOST='$IP'" > $APP_HOME/.env/OPENSHIFT_MONGODB_DB_HOST
 echo "export OPENSHIFT_MONGODB_DB_PORT='27017'" > $APP_HOME/.env/OPENSHIFT_MONGODB_DB_PORT
 echo "export OPENSHIFT_MONGODB_DB_URL='mongodb://$OPENSHIFT_MONGODB_DB_USERNAME:$OPENSHIFT_MONGODB_DB_PASSWORD@$IP:27017/'" > $APP_HOME/.env/OPENSHIFT_MONGODB_DB_URL
-echo "export OPENSHIFT_MONGODB_DB_CTL_SCRIPT='$MONGODB_DIR/${application}_mongodb_ctl.sh'" > $APP_HOME/.env/OPENSHIFT_MONGODB_DB_CTL_SCRIPT
 
 #
 # Fix config file

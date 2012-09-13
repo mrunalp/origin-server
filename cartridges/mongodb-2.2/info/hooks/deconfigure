@@ -36,8 +36,6 @@ source ${CART_INFO_DIR}/lib/util
 
 MONGODB_DIR=$(get_cartridge_instance_dir "$cartridge_type")
 
-source_if_exists "$APP_HOME/.env/OPENSHIFT_GEAR_TYPE"
-
 #
 # Teardown port proxy (ignore failures or missing hook)
 #
@@ -54,22 +52,14 @@ if only_cart_on_gear $cartridge_type; then
 fi
 
 # Stop mongodb before we remove all the variables.
-source_if_exists "$APP_HOME/.env/OPENSHIFT_MONGODB_DB_USERNAME"
-source_if_exists "$APP_HOME/.env/OPENSHIFT_MONGODB_DB_PASSWORD"
-source_if_exists "$APP_HOME/.env/OPENSHIFT_MONGODB_DB_HOST"
-source_if_exists "$APP_HOME/.env/OPENSHIFT_MONGODB_DB_PORT"
-source_if_exists "$APP_HOME/.env/OPENSHIFT_MONGODB_DB_CTL_SCRIPT"
-
-stop_db
+stop_database $cartridge_type
 
 confirm_pid_gone "${MONGODB_DIR}/pid/mongodb.pid"
 
 #
 # Remove environment variables
 #
-/bin/rm -f $APP_HOME/.env/OPENSHIFT_MONGODB_DB_USERNAME $APP_HOME/.env/OPENSHIFT_MONGODB_DB_PASSWORD $APP_HOME/.env/OPENSHIFT_MONGODB_DB_TYPE $APP_HOME/.env/OPENSHIFT_MONGODB_DB_HOST $APP_HOME/.env/OPENSHIFT_MONGODB_DB_PORT $APP_HOME/.env/OPENSHIFT_MONGODB_DB_SOCKET $APP_HOME/.env/OPENSHIFT_MONGODB_DB_URL $APP_HOME/.env/OPENSHIFT_MONGODB_DB_CTL_SCRIPT
-
-runcon -l s0-s0:c0.c1023 rm -rf "$MONGODB_DIR" "$MONGODB_DIR/${application}_mongodb_ctl.sh"
+/bin/rm -f $APP_HOME/.env/OPENSHIFT_MONGODB_DB_USERNAME $APP_HOME/.env/OPENSHIFT_MONGODB_DB_PASSWORD $APP_HOME/.env/OPENSHIFT_MONGODB_DB_TYPE $APP_HOME/.env/OPENSHIFT_MONGODB_DB_HOST $APP_HOME/.env/OPENSHIFT_MONGODB_DB_PORT $APP_HOME/.env/OPENSHIFT_MONGODB_DB_SOCKET $APP_HOME/.env/OPENSHIFT_MONGODB_DB_URL
 
 # For non-embedded (dedicated) mongo gear, destroy the gear.
 if only_cart_on_gear $cartridge_type; then

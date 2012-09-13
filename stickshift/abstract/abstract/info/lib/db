@@ -64,6 +64,10 @@ function restart_db {
     super_run_as_user "$_ctl_script restart"
 }
 
+function restart_database {
+    super_run_as_user "${CARTRIDGE_BASE_PATH}/$1/info/bin/app_ctl.sh restart"
+}
+
 function is_db_on_dbgear {
     _set_db_env
     [[ -n "$_db_gear_uuid"  && \
