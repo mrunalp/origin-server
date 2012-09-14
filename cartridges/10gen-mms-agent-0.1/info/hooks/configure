@@ -32,7 +32,6 @@ setup_embedded_configure "$1" $2 $3
 disable_cgroups
 
 MMS_DIR=`get_cartridge_instance_dir "$cartridge_type" | tr -s /` # ensure that there aren't double /'s
-MMS_CTL_SCRIPT="$MMS_DIR/${application}_10gen_mms_agent_ctl.sh"
 
 if [ ! -f "$APP_HOME/.env/OPENSHIFT_MONGODB_DB_USERNAME" ] ||
    [ ! -f "$APP_HOME/.env/OPENSHIFT_MONGODB_DB_PASSWORD" ] ||
@@ -87,11 +86,6 @@ popd > /dev/null
 
 
 #
-# Create simple 10gen-mms-agent start / stop script
-#
-ln -s $CART_INFO_DIR/bin/10gen_mms_agent_ctl.sh $MMS_CTL_SCRIPT
-
-#
 # Setup Permissions
 #
 chown $user_id.$group_id -R $MMS_DIR || error "Failed to chown new 10gen-mms-agent space.  Please contact support" 123
@@ -106,7 +100,7 @@ create_standard_cart_env_vars
 #
 # Start the server
 #
-run_as_user "$MMS_CTL_SCRIPT start" || error "Failed to start ${application}" 121
+run_as_user "${CARTRIDGE_BASE_PATH}/${cartridge_type}/info/bin/app_ctl.sh start" || error "Failed to start ${application}" 121
 
 client_result ""
 client_result "10gen-mms-agent-0.1 added. " 
