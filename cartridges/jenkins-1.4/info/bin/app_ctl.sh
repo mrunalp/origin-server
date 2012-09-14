@@ -9,6 +9,9 @@ do
     . $f
 done
 
+cartridge_type="jenkins-1.4"
+cartridge_dir=$OPENSHIFT_HOMEDIR/$cartridge_dir
+
 translate_env_vars
 
 if ! [ $# -eq 1 ]
@@ -33,7 +36,7 @@ isrunning() {
 }
 
 start_jenkins() {
-    src_user_hook pre_start_${CARTRIDGE_TYPE}
+    src_user_hook pre_start_${cartridge_type}
     set_app_state started
     /usr/lib/jvm/jre-1.6.0/bin/java \
         -Dcom.sun.akuma.Daemon=daemonized \
@@ -57,24 +60,24 @@ start_jenkins() {
         --httpListenAddress="$OPENSHIFT_INTERNAL_IP" &
     echo $! > /dev/null
     if [ $? -eq 0 ]; then
-        run_user_hook post_start_${CARTRIDGE_TYPE}
+        run_user_hook post_start_${cartridge_type}
     fi
 }
 
 stop_jenkins() {
-    src_user_hook pre_stop_${CARTRIDGE_TYPE}
+    src_user_hook pre_stop_${cartridge_type}
     set_app_state stopped
     kill -TERM $pid > /dev/null 2>&1
     wait_for_stop $pid
-    run_user_hook post_stop_${CARTRIDGE_TYPE}
+    run_user_hook post_stop_${cartridge_type}
 }
 
 case "$1" in
     start)
         _state=`get_app_state`
-        if [ -f ${OPENSHIFT_JENKINS_RUN_DIR}/stop_lock -o idle = "$_state" ]
+        if [ -f ${cartridge_dir}/run/stop_lock -o idle = "$_state" ]
         then
-            echo "Application is explicitly stopped!  Use 'rhc app start -a ${OPENSHIFT_GEAR_NAME}' to start back up." 1>&2
+            echo "Application is explicitly stopped!  Use 'rhc app start -a ${cartridge_type}' to start back up." 1>&2
             exit 0
         else
             if isrunning
@@ -107,7 +110,7 @@ case "$1" in
     ;;
     status)
         if ! isrunning; then
-            echo "Application '${OPENSHIFT_GEAR_NAME}' is either stopped or inaccessible"
+            echo "Application '${cartridge_type}' is either stopped or inaccessible"
             exit 0
         fi
         print_user_running_processes `id -u`
