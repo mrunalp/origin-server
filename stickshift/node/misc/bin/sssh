@@ -31,11 +31,10 @@ EOF
 }
 
 function ctl_all {
-    for cmd in `awk 'BEGIN { for (a in ENVIRON) if (a ~ /_CTL_SCRIPT$/) print ENVIRON[a] }'`
-    do
-        echo "+ $cmd $@"
-        $cmd $@
-    done
+    case "$1" in
+        start) start_app ;;
+        stop)  stop_app ;;
+    esac
 }
 
 
@@ -44,11 +43,11 @@ function mysql() {
    if [ -n "$OPENSHIFT_DB_GEAR_DNS" ]; then
       hostopt="-h $OPENSHIFT_DB_GEAR_DNS"
    else
-      [ -n "$OPENSHIFT_DB_HOST" ]  &&  hostopt="-h $OPENSHIFT_DB_HOST"
+      [ -n "$OPENSHIFT_MYSQL_DB_HOST" ]  &&  hostopt="-h $OPENSHIFT_MYSQL_DB_HOST"
    fi
-   portopt="-P ${OPENSHIFT_DB_PORT:-3306}"
-   useropt="-u ${OPENSHIFT_DB_USERNAME:-'admin'}"
-   passopt=--password="$OPENSHIFT_DB_PASSWORD"
+   portopt="-P ${OPENSHIFT_MYSQL_DB_PORT:-3306}"
+   useropt="-u ${OPENSHIFT_MYSQL_DB_USERNAME:-'admin'}"
+   passopt=--password="$OPENSHIFT_MYSQL_DB_PASSWORD"
 
    #  Unset default value if it was provided to us.
    for arg in $@; do

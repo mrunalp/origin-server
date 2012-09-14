@@ -54,6 +54,7 @@ echo "export PATH=\$PATH:${CART_INFO_DIR}/bin/" > $APP_HOME/.env/PATH_JENKINS_CL
 
 . $APP_HOME/.env/OPENSHIFT_HOMEDIR
 . $APP_HOME/.env/OPENSHIFT_GEAR_UUID
+. $APP_HOME/.env/OPENSHIFT_APP_NAME
 . $APP_HOME/.env/JENKINS_URL
 . $APP_HOME/.env/JENKINS_USERNAME
 . $APP_HOME/.env/JENKINS_PASSWORD
@@ -82,10 +83,14 @@ fi
 
 echo $JENKINS_PASSWORD > "$JENKINS_CLIENT_DIR/.password"
 
+
+framework_carts=($(get_installed_framework_carts))
+primary_framework_cart=${framework_carts[0]}
+
 # Maybe allow cartridges to create their own jenkins job
-if [ -f "${CARTRIDGE_BASE_PATH}/${cartridge_type}/info/configuration/jenkins_job_template.xml" ]
+if [ -f "${CARTRIDGE_BASE_PATH}/${primary_framework_cart}/info/configuration/jenkins_job_template.xml" ]
 then
-    JOB_XML="${CARTRIDGE_BASE_PATH}/${cartridge_type}/info/configuration/jenkins_job_template.xml"
+    JOB_XML="${CARTRIDGE_BASE_PATH}/${primary_framework_cart}/info/configuration/jenkins_job_template.xml"
 else
     JOB_XML="$CART_INFO_DIR/configuration/jenkins_job_template.xml"
 fi
