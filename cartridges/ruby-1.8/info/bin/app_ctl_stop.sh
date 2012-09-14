@@ -12,7 +12,7 @@ done
 
 cart_instance_dir=$OPENSHIFT_HOMEDIR/ruby-1.8
 
-CART_CONF_DIR=${CARTRIDGE_BASE_PATH}/${OPENSHIFT_GEAR_TYPE}/info/configuration/etc/conf
+CART_CONF_DIR=${CARTRIDGE_BASE_PATH}/${cartridge_type}/info/configuration/etc/conf
 
 # Stop the app
 src_user_hook pre_stop_${CARTRIDGE_TYPE}
@@ -44,4 +44,4 @@ do
         break
     fi
 done
-run_user_hook post_stop_${CARTRIDGE_TYPE}
+run_user_hook post_stop_${cartridge_type}
