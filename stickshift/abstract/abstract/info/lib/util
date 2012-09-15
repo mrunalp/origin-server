@@ -39,6 +39,11 @@ function get_installed_framework_carts {
     echo "${carts[@]}"
 }
 
+# Get list of installed databases
+function get_installed_databases {
+    (cd $OPENSHIFT_HOMEDIR; ls -d {mongodb-2.0,mysql-5.1,postgresql-8.4} 2>/dev/null)
+}
+
 # Public: Start all processes in a given gear
 #
 # Examples:
