@@ -1,4 +1,5 @@
 #!/bin/bash
+cartridge_type="mongodb-2.0"
 
 # Import Environment Variables
 for f in ~/.env/*
@@ -6,13 +7,13 @@ do
     . $f
 done
 
-#  FIXME: Temporary fix for bugz 856487 - Can't add mongodb-2.2 to a ruby1.9 app
+#  FIXME: Temporary fix for bugz 856487 - Can't add mongodb-2.0 to a ruby1.9 app
 #         This needs to be removed once we change how we hande sclized versions
 #         of packages.
 unset LD_LIBRARY_PATH
 
 source /etc/stickshift/stickshift-node.conf
-CART_INFO_DIR=${CARTRIDGE_BASE_PATH}/embedded/mongodb-2.2/info
+CART_INFO_DIR=${CARTRIDGE_BASE_PATH}/$cartridge_type/info
 source ${CART_INFO_DIR}/lib/util
 
 
@@ -63,7 +64,7 @@ if [ ! -f $OPENSHIFT_DATA_DIR/mongodb_dump_snapshot.tar.gz ]; then
    echo "MongoDB restore attempted but no dump was found!" 1>&2
    die 0 "ERROR" "$OPENSHIFT_DATA_DIR/mongodb_dump_snapshot.tar.gz does not exist"
 else
-   start_db_as_user
+   start_database_as_user $cartridge_type
    restore_from_mongodb_snapshot
 fi
 

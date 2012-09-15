@@ -1,4 +1,5 @@
 #!/bin/bash
+cartridge_type="mysql-5.1"
 
 # Import Environment Variables
 for f in ~/.env/*
@@ -7,10 +8,11 @@ do
 done
 
 source /etc/stickshift/stickshift-node.conf
-CART_INFO_DIR=${CARTRIDGE_BASE_PATH}/embedded/mysql-5.1/info
+source ${CARTRIDGE_BASE_PATH}/abstract/info/lib/util
+CART_INFO_DIR=${CARTRIDGE_BASE_PATH}/$cartridge_type/info
 source ${CART_INFO_DIR}/lib/util
 
-start_db_as_user 1>&2
+start_database_as_user $cartridge_type 1>&2
 
 dbhost=${OPENSHIFT_MYSQL_DB_GEAR_DNS:-$OPENSHIFT_MYSQL_DB_HOST}
 get_db_host_as_user > $OPENSHIFT_DATA_DIR/mysql_db_host

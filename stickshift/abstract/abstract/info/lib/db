@@ -97,6 +97,11 @@ function start_db_as_user {
     wait_to_start_db
 }
 
+function start_database_as_user {
+    ${CARTRIDGE_BASE_PATH}/$1/info/bin/app_ctl.sh start
+    wait_to_start_db_as_user
+}
+
 function stop_db_as_user {
     _set_db_env
     if is_db_on_dbgear; then
@@ -107,6 +112,10 @@ function stop_db_as_user {
 
     ${_ctl_script} stop
     sleep 1
+}
+
+function stop_database_as_user {
+    ${CARTRIDGE_BASE_PATH}/$1/info/bin/app_ctl.sh stop
 }
 
 function get_db_host_as_user {
