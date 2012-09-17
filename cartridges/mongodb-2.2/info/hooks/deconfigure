@@ -66,4 +66,6 @@ if only_cart_on_gear $cartridge_type; then
     # Remove apache vhost configuration.
     rm_httpd_proxy $uuid $namespace $application
 fi
+
+rm_cartridge_instance_dir "$cartridge_type"
 enable_cgroups
