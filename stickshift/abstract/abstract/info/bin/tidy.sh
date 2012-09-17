@@ -9,7 +9,7 @@ done
 source "/etc/stickshift/stickshift-node.conf"
 source ${CARTRIDGE_BASE_PATH}/abstract/info/lib/util
 
-pushd ${OPENSHIFT_HOMEDIR}git/${OPENSHIFT_GEAR_NAME}.git > /dev/null
+pushd ${OPENSHIFT_HOMEDIR}git/${OPENSHIFT_APP_NAME}.git > /dev/null
 client_message "Running 'git prune'"
 git prune
 client_message "Running 'git gc --aggressive'"
