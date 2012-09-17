@@ -51,8 +51,6 @@ else
 
     force_kill $jenkins_pid
 
-    rm_app_dir
-
     rm_cartridge_instance_dir "$cartridge_type"
 
     enable_cgroups

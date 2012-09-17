@@ -309,10 +309,6 @@ function check_app_dir_exists {
     fi
 }
 
-function rm_app_dir {
-    runcon -l s0-s0:c0.c1023 rm -rf "$APP_DIR" "$APP_HOME/app-root"
-}
-
 function rm_cartridge_instance_dir {
     ctype=${1:-$cartridge_type}
     [ -n "$ctype" ]  &&  runcon -l s0-s0:c0.c1023 rm -rf "$APP_HOME/$ctype"
