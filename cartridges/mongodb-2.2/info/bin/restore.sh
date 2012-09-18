@@ -1,5 +1,5 @@
 #!/bin/bash
-cartridge_type="mongodb-2.0"
+cartridge_type="mongodb-2.2"
 
 # Import Environment Variables
 for f in ~/.env/*
