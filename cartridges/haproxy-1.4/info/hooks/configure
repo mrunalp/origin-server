@@ -111,7 +111,6 @@ start_app
 #
 # Setup environment variables
 #
-echo "export OPENSHIFT_HAPROXY_RUN_DIR='$HAPROXY_DIR/run/'" > $APP_HOME/.env/OPENSHIFT_HAPROXY_RUN_DIR
 echo "export OPENSHIFT_HAPROXY_LOG_DIR='$HAPROXY_DIR/logs/'" > $APP_HOME/.env/OPENSHIFT_HAPROXY_LOG_DIR
 
 #
