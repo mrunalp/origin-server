@@ -42,10 +42,10 @@ IP=$OPENSHIFT_INTERNAL_IP
 . $APP_HOME/.env/OPENSHIFT_MYSQL_DB_PASSWORD
 . $APP_HOME/.env/OPENSHIFT_MYSQL_DB_USERNAME
 
-start_database $cartridge_type
+start_database
 
     echo "
 DELETE FROM user WHERE Host<>'$IP' and User='$OPENSHIFT_MYSQL_DB_USERNAME';
 flush privileges;" | mysql -u $OPENSHIFT_MYSQL_DB_USERNAME -P $OPENSHIFT_MYSQL_DB_PORT -h $IP --password="$OPENSHIFT_MYSQL_DB_PASSWORD" -S "${MYSQL_DIR}/socket/mysql.sock" mysql > /dev/null || error "Failed to remove wildcard ip" 187
 
-stop_db
+stop_database

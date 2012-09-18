@@ -44,4 +44,4 @@ source $CART_INFO_DIR/lib/util
 # Start application
 #
 rm -f "$MONGODB_DIR/run/stop_lock"
-start_database $cartridge_type
+start_database

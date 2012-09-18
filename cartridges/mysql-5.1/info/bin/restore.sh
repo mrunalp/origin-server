@@ -15,7 +15,7 @@ then
     CART_INFO_DIR=${CARTRIDGE_BASE_PATH}/$cartridge_type/info
     source ${CART_INFO_DIR}/lib/util
 
-    start_database_as_user $cartridge_type
+    start_database_as_user
 
     dbhost=${OPENSHIFT_MYSQL_DB_GEAR_DNS:-$OPENSHIFT_MYSQL_DB_HOST}
     OLD_IP=$(/bin/cat $OPENSHIFT_DATA_DIR/mysql_db_host)

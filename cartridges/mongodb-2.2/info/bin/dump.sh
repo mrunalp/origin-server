@@ -61,6 +61,6 @@ function create_mongodb_snapshot() {
 }  #  End of function  create_mongodb_snapshot.
 
 
-start_database_as_user $cartridge_type &> $OPENSHIFT_MONGODB_DB_LOG_DIR/mongo_start.log
+start_database_as_user &> $OPENSHIFT_MONGODB_DB_LOG_DIR/mongo_start.log
 create_mongodb_snapshot
 exit 0

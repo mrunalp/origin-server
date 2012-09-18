@@ -64,6 +64,9 @@ if [ -z "$IP" ]; then
     prepare_gear_for_standalone_postgresql
 fi
 
+POSTGRESQL_PORT=5432
+POSTGRESQL_IP=`find_open_ip $uid $uuid $POSTGRESQL_PORT`
+
 #
 # Create the core of the application
 #
@@ -75,7 +78,7 @@ popd >/dev/null
 # The contained tar file is the results of "initdb -D data", but much, much faster.
 tar -zxf $CART_INFO_DIR/configuration/data/pgdata-template.tar.gz -C "${CART_INSTANCE_DIR}/data/"
 sed "s,RHC_PSQLDIR,$CART_INSTANCE_DIR," $CART_ETC_DIR/postgresql.conf > ${CART_INSTANCE_DIR}/data/postgresql.conf
-sed -i "s,RHC_BIND_ADDR,$IP," $CART_INSTANCE_DIR/data/postgresql.conf
+sed -i "s,RHC_BIND_ADDR,$POSTGRESQL_IP," $CART_INSTANCE_DIR/data/postgresql.conf
 cp -f $CART_ETC_DIR/pg_hba.conf $CART_INSTANCE_DIR/data/pg_hba.conf
 chown -R $user_id.$group_id "${CART_INSTANCE_DIR}/data/" || error "Failed to chown data/ directory. Please contact support" 126
 
@@ -100,10 +103,10 @@ password=$(generate_password)
 echo "export OPENSHIFT_POSTGRESQL_DB_USERNAME='admin'" > $APP_HOME/.env/OPENSHIFT_POSTGRESQL_DB_USERNAME
 echo "export OPENSHIFT_POSTGRESQL_DB_PASSWORD='$password'" > $APP_HOME/.env/OPENSHIFT_POSTGRESQL_DB_PASSWORD
 echo "export OPENSHIFT_POSTGRESQL_DB_TYPE='postgresql'" > $APP_HOME/.env/OPENSHIFT_POSTGRESQL_DB_TYPE
-echo "export OPENSHIFT_POSTGRESQL_DB_HOST='$IP'" > $APP_HOME/.env/OPENSHIFT_POSTGRESQL_DB_HOST
-echo "export OPENSHIFT_POSTGRESQL_DB_PORT='5432'" > $APP_HOME/.env/OPENSHIFT_POSTGRESQL_DB_PORT
+echo "export OPENSHIFT_POSTGRESQL_DB_HOST='$POSTGRESQL_IP'" > $APP_HOME/.env/OPENSHIFT_POSTGRESQL_DB_HOST
+echo "export OPENSHIFT_POSTGRESQL_DB_PORT='$POSTGRESQL_PORT'" > $APP_HOME/.env/OPENSHIFT_POSTGRESQL_DB_PORT
 echo "export OPENSHIFT_POSTGRESQL_DB_SOCKET='${CART_INSTANCE_DIR}/socket/postgres.sock'" > $APP_HOME/.env/OPENSHIFT_POSTGRESQL_DB_SOCKET
-echo "export OPENSHIFT_POSTGRESQL_DB_URL='postgresql://admin:$password@$IP:5432/'" > $APP_HOME/.env/OPENSHIFT_POSTGRESQL_DB_URL
+echo "export OPENSHIFT_POSTGRESQL_DB_URL='postgresql://admin:$password@$POSTGRESQL_IP:$POSTGRESQL_PORT/'" > $APP_HOME/.env/OPENSHIFT_POSTGRESQL_DB_URL
 
 
 # Setup psql command files
@@ -118,9 +121,9 @@ chown $user_id.$group_id  $APP_HOME/.psql_history $APP_HOME/.pgpass
 #
 export OPENSHIFT_POSTGRESQL_DB_USERNAME='admin'
 export OPENSHIFT_POSTGRESQL_DB_PASSWORD="$password"
-export OPENSHIFT_POSTGRESQL_DB_HOST="$IP"
-export OPENSHIFT_POSTGRESQL_DB_PORT='5432'
-start_database $cartridge_type
+export OPENSHIFT_POSTGRESQL_DB_HOST="$POSTGRESQL_IP"
+export OPENSHIFT_POSTGRESQL_DB_PORT="$POSTGRESQL_PORT"
+start_database
 
 # TODO: rmillner: is the owner $uuid or admin?
 ## Setup user
@@ -133,18 +136,18 @@ EOF
 
 
 ## Setup automatic login file.
-echo "$IP:5432:*:admin:$password" > $APP_HOME/.pgpass
+echo "$POSTGRESQL_IP:$POSTGRESQL_PORT:*:admin:$password" > $APP_HOME/.pgpass
 chmod 0400 $APP_HOME/.pgpass
 
 
-psql_ip="$IP"
-psql_port="5432"
+psql_ip="$POSTGRESQL_IP"
+psql_port="$POSTGRESQL_PORT"
 if is_a_scalable_app; then
     if $(dirname "$0")/expose-port "$@"; then
         source $APP_HOME/.env/OPENSHIFT_GEAR_DNS
         source $APP_HOME/.env/OPENSHIFT_POSTGRESQL_DB_PROXY_PORT
-        psql_ip=${OPENSHIFT_GEAR_DNS:-"$IP"}
-        psql_port=${OPENSHIFT_POSTGRESQL_DB_PROXY_PORT:-5432}
+        psql_ip=${OPENSHIFT_GEAR_DNS:-"$POSTGRESQL_IP"}
+        psql_port=${OPENSHIFT_POSTGRESQL_DB_PROXY_PORT:-$POSTGRESQL_PORT}
     fi
 fi
 
@@ -158,10 +161,10 @@ client_result ""
 
 if is_a_scalable_app; then
     client_result "Connection URL: postgresql://$psql_ip:$psql_port/"
-    client_result "PostgreSQL gear-local connection URL: postgresql://$IP:5432/"
+    client_result "PostgreSQL gear-local connection URL: postgresql://$POSTGRESQL_IP:$POSTGRESQL_PORT/"
     client_result ""
 else
-    client_result "Connection URL: postgresql://$IP:5432/"
+    client_result "Connection URL: postgresql://$POSTGRESQL_IP:$POSTGRESQL_PORT/"
     client_result ""
 fi
 

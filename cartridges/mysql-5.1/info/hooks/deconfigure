@@ -57,7 +57,7 @@ if only_cart_on_gear $cartridge_type; then
    stop_app
 fi
 
-stop_database $cartridge_type
+stop_database
 confirm_pid_gone "${MYSQL_DIR}/pid/mysql.pid"
 
 #

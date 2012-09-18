@@ -20,8 +20,6 @@ function wait_to_start_db_as_user {
     sleep 10
 }
 
-
-
 #
 # Work functions, less common to override
 #
@@ -30,10 +28,10 @@ function _set_db_env {
     # sourced.  Further, functions may be called only when their own
     # requirements are satisfied and variables may change so source
     # this at the top of each function.
-    CART_NS=$(get_cartridge_namespace_from_path)
+    CART_NS=$(convert_cart_name_to_namespace_id $cartridge_type)
     
-    _ctl_script=$(get_env_var_dynamic "OPENSHIFT_${CART_NS}_DB_CTL_SCRIPT")
-    _ctl_ongear_script=$(get_env_var_dynamic "OPENSHIFT_${CART_NS}_DB_CTL_ONGEAR_SCRIPT")
+    _ctl_script="${CARTRIDGE_BASE_PATH}/$cartridge_type/info/bin/app_ctl.sh"
+    _ctl_ongear_script="${CARTRIDGE_BASE_PATH}/$cartridge_type/info/bin/app_ctl.sh"
     _db_gear_uuid=$(get_env_var_dynamic "OPENSHIFT_${CART_NS}_DB_GEAR_UUID")
     _db_gear_dns=$(get_env_var_dynamic "OPENSHIFT_${CART_NS}_DB_GEAR_DNS")
     _db_host=$(get_env_var_dynamic "OPENSHIFT_${CART_NS}_DB_HOST")
@@ -46,7 +44,7 @@ function start_db {
 }
 
 function start_database {
-    super_run_as_user "${CARTRIDGE_BASE_PATH}/$1/info/bin/app_ctl.sh start"
+    super_run_as_user "${CARTRIDGE_BASE_PATH}/$cartridge_type/info/bin/app_ctl.sh start"
     wait_to_start_db
 }
 
@@ -56,7 +54,7 @@ function stop_db {
 }
 
 function stop_database {
-    super_run_as_user "${CARTRIDGE_BASE_PATH}/$1/info/bin/app_ctl.sh stop"
+    super_run_as_user "${CARTRIDGE_BASE_PATH}/$cartridge_type/info/bin/app_ctl.sh stop"
 }
 
 function restart_db {
@@ -65,7 +63,7 @@ function restart_db {
 }
 
 function restart_database {
-    super_run_as_user "${CARTRIDGE_BASE_PATH}/$1/info/bin/app_ctl.sh restart"
+    super_run_as_user "${CARTRIDGE_BASE_PATH}/$cartridge_type/info/bin/app_ctl.sh restart"
 }
 
 function is_db_on_dbgear {
@@ -98,7 +96,13 @@ function start_db_as_user {
 }
 
 function start_database_as_user {
-    ${CARTRIDGE_BASE_PATH}/$1/info/bin/app_ctl.sh start
+    _set_db_env
+    if is_db_on_dbgear; then
+        control_db_on_dbgear start
+        return 0
+    fi
+
+    ${CARTRIDGE_BASE_PATH}/$cartridge_type/info/bin/app_ctl.sh start
     wait_to_start_db_as_user
 }
 
@@ -115,7 +119,14 @@ function stop_db_as_user {
 }
 
 function stop_database_as_user {
-    ${CARTRIDGE_BASE_PATH}/$1/info/bin/app_ctl.sh stop
+    _set_db_env
+    if is_db_on_dbgear; then
+        control_db_on_dbgear stop
+        sleep 1
+        return 0
+    fi
+    ${CARTRIDGE_BASE_PATH}/$cartridge_type/info/bin/app_ctl.sh stop
+    sleep 1
 }
 
 function get_db_host_as_user {

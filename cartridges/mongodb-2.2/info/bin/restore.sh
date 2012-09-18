@@ -64,7 +64,7 @@ if [ ! -f $OPENSHIFT_DATA_DIR/mongodb_dump_snapshot.tar.gz ]; then
    echo "MongoDB restore attempted but no dump was found!" 1>&2
    die 0 "ERROR" "$OPENSHIFT_DATA_DIR/mongodb_dump_snapshot.tar.gz does not exist"
 else
-   start_database_as_user $cartridge_type
+   start_database_as_user
    restore_from_mongodb_snapshot
 fi
 

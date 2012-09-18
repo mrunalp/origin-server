@@ -42,5 +42,5 @@ source ${CART_INFO_DIR}/lib/util
 #
 # Stop application
 #
-stop_database $cartridge_type
+stop_database
 touch "$MONGODB_DIR/run/stop_lock"

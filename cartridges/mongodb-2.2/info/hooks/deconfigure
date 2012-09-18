@@ -52,7 +52,7 @@ if only_cart_on_gear $cartridge_type; then
 fi
 
 # Stop mongodb before we remove all the variables.
-stop_database $cartridge_type
+stop_database
 
 confirm_pid_gone "${MONGODB_DIR}/pid/mongodb.pid"
 

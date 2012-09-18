@@ -17,7 +17,7 @@ export PGPORT="${OPENSHIFT_POSTGRESQL_DB_PORT:-5432}"
 export PGUSER="${OPENSHIFT_POSTGRESQL_DB_USERNAME:-'admin'}"
 export PGPASSWORD="${OPENSHIFT_POSTGRESQL_DB_PASSWORD}"
 
-start_database_as_user $cartridge_type 1>&2
+start_database_as_user 1>&2
 
 echo "postgresql-8.4" > $OPENSHIFT_DATA_DIR/postgresql_dbname
 

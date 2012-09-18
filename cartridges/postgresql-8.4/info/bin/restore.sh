@@ -15,7 +15,7 @@ then
     source ${CART_INFO_DIR}/lib/util
     CART_INSTANCE_DIR=${OPENSHIFT_HOMEDIR}/$cartridge_type
 
-    start_database_as_user $cartridge_type
+    start_database_as_user
 
     old_dbname="postgresql-8.4"
     old_dbuser=${OPENSHIFT_POSTGRESQL_DB_GEAR_UUID:-$OPENSHIFT_GEAR_UUID}

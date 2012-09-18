@@ -12,7 +12,7 @@ source ${CARTRIDGE_BASE_PATH}/abstract/info/lib/util
 CART_INFO_DIR=${CARTRIDGE_BASE_PATH}/$cartridge_type/info
 source ${CART_INFO_DIR}/lib/util
 
-start_database_as_user $cartridge_type 1>&2
+start_database_as_user 1>&2
 
 dbhost=${OPENSHIFT_MYSQL_DB_GEAR_DNS:-$OPENSHIFT_MYSQL_DB_HOST}
 get_db_host_as_user > $OPENSHIFT_DATA_DIR/mysql_db_host

@@ -55,12 +55,12 @@ then
     error "Can not move mysql without OPENSHIFT_MYSQL_DB_PASSWORD" 188
 else
 
-start_database $cartridge_type
+start_database
 
     echo "
 grant all on *.* to '$OPENSHIFT_MYSQL_DB_USERNAME'@'%' identified by '$OPENSHIFT_MYSQL_DB_PASSWORD' with grant option;
 flush privileges;" | mysql -u $OPENSHIFT_MYSQL_DB_USERNAME -P $OPENSHIFT_MYSQL_DB_PORT -h $IP --password="$OPENSHIFT_MYSQL_DB_PASSWORD" -S "${MYSQL_DIR}/socket/mysql.sock" mysql > /dev/null || error "Failed to setup root user with wildcard ip" 187
 
-stop_db
+stop_database
 
 fi

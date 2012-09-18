@@ -63,7 +63,7 @@ source_if_exists "$APP_HOME/.env/OPENSHIFT_POSTGRESQL_DB_PASSWORD"
 source_if_exists "$APP_HOME/.env/OPENSHIFT_POSTGRESQL_DB_HOST"
 source_if_exists "$APP_HOME/.env/OPENSHIFT_POSTGRESQL_DB_PORT"
 
-stop_database $cartridge_type
+stop_database
 confirm_pid_gone "${CART_INSTANCE_DIR}/pid/postgres.pid"
 
 #
