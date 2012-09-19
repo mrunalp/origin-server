@@ -186,6 +186,10 @@ module StickShift
       path = File.join(basedir, ".httpd.d", "#{uuid}_*")
       FileUtils.rm_rf(Dir.glob(path))
 
+      cartdir = @config.get("CARTRIDGE_BASE_PATH")
+      out, err, rc = shellCmd("#{cartdir}/abstract/info/bin/httpd_singular graceful")
+      Syslog.alert("ERROR: failure from httpd_singular(#{rc}): #{@uuid}   stdout: #{out}   stderr:#{err}") unless rc == 0
+
       # There's a small race condition where tasks get restarted during teardown.
       # Kill again after the home directory is gone.
       kill_procs(uuid)
@@ -193,7 +197,7 @@ module StickShift
 
       out,err,rc = shellCmd("userdel -f \"#{@uuid}\"")
       raise UserDeletionException.new(
-            "ERROR: unable to destroy user account: #{@uuid}   stdout: #{out}   stderr:#{err}") unless rc == 0
+            "ERROR: unable to destroy user account(#{rc}): #{@uuid}   stdout: #{out}   stderr:#{err}") unless rc == 0
       notify_observers(:after_unix_user_destroy)
     end
 
