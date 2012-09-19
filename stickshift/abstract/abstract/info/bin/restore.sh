@@ -25,9 +25,9 @@ echo "Removing old data dir: ~/app-root/data/*" 1>&2
 
 restore_tar.sh $include_git
 
-for db in $(get_installed_databases)
+for db in `awk 'BEGIN { for (a in ENVIRON) if (a ~ /_DB_TYPE$/) print ENVIRON[a] }'`
 do
-    restore_cmd=${CARTRIDGE_BASE_PATH}/${db}/info/bin/restore.sh
+    restore_cmd=${CARTRIDGE_BASE_PATH}/${db}*/info/bin/restore.sh
     echo "Running extra restore for $db" 1>&2
     $restore_cmd
 done
