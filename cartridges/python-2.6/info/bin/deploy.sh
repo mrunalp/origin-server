@@ -15,9 +15,11 @@ start_dbs
 
 cart_instance_dir=$OPENSHIFT_HOMEDIR/python-2.6
 
-if [ -d $cart_instance_dir/virtenv ]
+virtenv_dir=$cart_instance_dir/virtenv
+
+if [ -f $virtenv_dir/bin/activate ]
 then 
-    pushd $cart_instance_dir/virtenv > /dev/null
+    pushd $virtenv_dir > /dev/null
     . ./bin/activate
     popd > /dev/null
 fi
