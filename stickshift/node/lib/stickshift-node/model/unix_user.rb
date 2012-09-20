@@ -394,8 +394,7 @@ module StickShift
     #   # ~/.sandbox/$uuid
     #   # ~/.env/
     #   # APP_UUID, GEAR_UUID, APP_NAME, APP_DNS, HOMEDIR, DATA_DIR, \
-    #   #   GEAR_DNS, GEAR_NAME, GEAR_CTL_SCRIPT, PATH, REPO_DIR, TMP_DIR, \
-    #   #   HISTFILE
+    #   #   GEAR_DNS, GEAR_NAME, PATH, REPO_DIR, TMP_DIR, HISTFILE
     #   # ~/app-root
     #   # ~/app-root/data
     #   # ~/app-root/runtime/repo
