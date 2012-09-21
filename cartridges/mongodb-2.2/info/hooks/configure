@@ -38,9 +38,9 @@ CART_INFO_DIR=${CARTRIDGE_BASE_PATH}/embedded/$cartridge_type/info
 source ${CART_INFO_DIR}/lib/util
 source_if_exists "$APP_HOME/.env/OPENSHIFT_APP_NAME"
 
-if [ -f $APP_HOME/.env/OPENSHIFT_MONGODB_DB_TYPE ]; then
-    source $APP_HOME/.env/OPENSHIFT_MONGODB_DB_TYPE
-    client_error "Only 1 embedded database permitted - application currently has '$OPENSHIFT_MONGODB_DB_TYPE'"
+databases=$(get_attached_databases)
+if [ -n "$databases" ]; then
+    client_error "Only 1 embedded database permitted - application currently has '$databases'"
     exit 132
 fi
 
@@ -87,7 +87,6 @@ password=$(generate_password)
 #
 echo "export OPENSHIFT_MONGODB_DB_USERNAME='admin'" > $APP_HOME/.env/OPENSHIFT_MONGODB_DB_USERNAME
 echo "export OPENSHIFT_MONGODB_DB_PASSWORD='$password'" > $APP_HOME/.env/OPENSHIFT_MONGODB_DB_PASSWORD
-echo "export OPENSHIFT_MONGODB_DB_TYPE='mongodb'" > $APP_HOME/.env/OPENSHIFT_MONGODB_DB_TYPE
 echo "export OPENSHIFT_MONGODB_DB_HOST='$MONGODB_IP'" > $APP_HOME/.env/OPENSHIFT_MONGODB_DB_HOST
 echo "export OPENSHIFT_MONGODB_DB_PORT='$MONGODB_PORT'" > $APP_HOME/.env/OPENSHIFT_MONGODB_DB_PORT
 echo "export OPENSHIFT_MONGODB_DB_URL='mongodb://admin:$password@$MONGODB_IP:$MONGODB_PORT/'" > $APP_HOME/.env/OPENSHIFT_MONGODB_DB_URL
