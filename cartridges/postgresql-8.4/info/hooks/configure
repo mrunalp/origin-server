@@ -39,18 +39,9 @@ CART_INFO_DIR=${CARTRIDGE_BASE_PATH}/embedded/$cartridge_type/info
 source ${CART_INFO_DIR}/lib/util
 source_if_exists "$APP_HOME/.env/OPENSHIFT_APP_NAME"
 
-
-# TODO: RMILLNER: review
-#todo: review! check remove to allow embedded cartridge for postgresql... /rlm
-#if [ -d "$CART_INSTANCE_DIR" ]
-#then
-#    client_error "Embedded PostgreSQL-8.4 already attached to $application"
-#    exit 132
-#fi
-
-if [ -f $APP_HOME/.env/OPENSHIFT_POSTGRESQL_DB_TYPE ]; then
-    source $APP_HOME/.env/OPENSHIFT_POSTGRESQL_DB_TYPE
-    client_error "Only 1 embedded database permitted - application currently has '$OPENSHIFT_POSTGRESQL_DB_TYPE'"
+databases=$(get_attached_databases)
+if [ -n "$databases" ]; then
+    client_error "Only 1 embedded database permitted - application currently has '$databases'"
     exit 133
 fi
 
@@ -102,7 +93,6 @@ password=$(generate_password)
 #
 echo "export OPENSHIFT_POSTGRESQL_DB_USERNAME='admin'" > $APP_HOME/.env/OPENSHIFT_POSTGRESQL_DB_USERNAME
 echo "export OPENSHIFT_POSTGRESQL_DB_PASSWORD='$password'" > $APP_HOME/.env/OPENSHIFT_POSTGRESQL_DB_PASSWORD
-echo "export OPENSHIFT_POSTGRESQL_DB_TYPE='postgresql'" > $APP_HOME/.env/OPENSHIFT_POSTGRESQL_DB_TYPE
 echo "export OPENSHIFT_POSTGRESQL_DB_HOST='$POSTGRESQL_IP'" > $APP_HOME/.env/OPENSHIFT_POSTGRESQL_DB_HOST
 echo "export OPENSHIFT_POSTGRESQL_DB_PORT='$POSTGRESQL_PORT'" > $APP_HOME/.env/OPENSHIFT_POSTGRESQL_DB_PORT
 echo "export OPENSHIFT_POSTGRESQL_DB_SOCKET='${CART_INSTANCE_DIR}/socket/postgres.sock'" > $APP_HOME/.env/OPENSHIFT_POSTGRESQL_DB_SOCKET

@@ -41,7 +41,19 @@ function get_installed_framework_carts {
 
 # Get list of installed databases
 function get_installed_databases {
-    (cd $OPENSHIFT_HOMEDIR; ls -d {mongodb-2.0,mysql-5.1,postgresql-8.4} 2>/dev/null)
+    (cd $OPENSHIFT_HOMEDIR; ls -d {mongodb-2.2,mysql-5.1,postgresql-8.4} 2>/dev/null)
+}
+
+# Has a database been attached the this gear?
+function get_attached_databases {
+    dbs=$( (
+        cd $CARTRIDGE_BASE_PATH
+        for e in $(ls -1 $OPENSHIFT_HOMEDIR/.env/OPENSHIFT_*_DB_URL 2>/dev/null |sed -e 's/.*OPENSHIFT_\(.*\)_DB_URL/\1/' |tr '[A-Z]' '[a-z]')
+        do
+          ls -d $e*
+        done
+    ) )
+    echo "${dbs[@]}"
 }
 
 # Public: Start all processes in a given gear
@@ -54,9 +66,9 @@ function get_installed_databases {
 function start_app {
     set_app_state started
 
-    for db in `awk 'BEGIN { for (a in ENVIRON) if (a ~ /_DB_TYPE$/) print ENVIRON[a] }'`
+    for db in $(get_attached_databases)
     do
-        run_as_user "${CARTRIDGE_BASE_PATH}/${db}*/info/bin/app_ctl.sh start" || error "Failed to start ${db}" 121
+        run_as_user "${CARTRIDGE_BASE_PATH}/$db/info/bin/app_ctl.sh start" || error "Failed to start ${db}" 121
     done
 
     for cart in $(get_start_order)
@@ -73,16 +85,16 @@ function stop_app {
         run_as_user "${CARTRIDGE_BASE_PATH}/$cart/info/bin/app_ctl.sh stop" || error "Failed to stop ${cart}" 121
     done
 
-    for db in `awk 'BEGIN { for (a in ENVIRON) if (a ~ /_DB_TYPE$/) print ENVIRON[a] }'`
+    for db in $(get_attached_databases)
     do
-        run_as_user "${CARTRIDGE_BASE_PATH}/${db}*/info/bin/app_ctl.sh stop" || error "Failed to start ${db}" 121
+        run_as_user "${CARTRIDGE_BASE_PATH}/$db/info/bin/app_ctl.sh stop" || error "Failed to start ${db}" 121
     done
 }
 
 function start_dbs {
-    for db in `awk 'BEGIN { for (a in ENVIRON) if (a ~ /_DB_TYPE$/) print ENVIRON[a] }'`
+    for db in $(get_attached_databases)
     do
-        ${CARTRIDGE_BASE_PATH}/${db}*/info/bin/app_ctl.sh start || error "Failed to start ${db}" 121
+        ${CARTRIDGE_BASE_PATH}/$db/info/bin/app_ctl.sh start || error "Failed to start ${db}" 121
     done
 }
 
