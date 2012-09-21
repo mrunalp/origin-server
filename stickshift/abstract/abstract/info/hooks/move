@@ -31,10 +31,10 @@ then
   idle=true
 fi
 
-setup_basic_vars
 
 cartridge_type=$(get_cartridge_name_from_path)
 
+setup_basic_vars
 CART_INFO_DIR=$CARTRIDGE_BASE_PATH/${cartridge_type}/info
 
 observe_setup_app_home
