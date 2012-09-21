@@ -20,7 +20,7 @@ function get_gear_start_order {
 # TODO: Replace with reading from start/stop order files when implemented
 #
 function get_component_order {
-    (cd $APP_HOME; ls -dU {mongodb-2.0,mysql-5.1,postgresql-8.4,10gen-mms-agent-0.1,cron-1.4,jenkins-client-1.4,metrics-0.1,phpmoadmin-1.0,phpmyadmin-3.4,rockmongo-1.1,diy-0.1,jbossas-7,jbosseap-6.0,jenkins-1.4,nodejs-0.6,perl-5.10,php-5.3,python-2.6,ruby-1.8,ruby-1.9,zend-5.6,haproxy-1.4} 2>/dev/null) | $1
+    (cd $APP_HOME; ls -dU {10gen-mms-agent-0.1,cron-1.4,jenkins-client-1.4,metrics-0.1,phpmoadmin-1.0,phpmyadmin-3.4,rockmongo-1.1,diy-0.1,jbossas-7,jbosseap-6.0,jenkins-1.4,nodejs-0.6,perl-5.10,php-5.3,python-2.6,ruby-1.8,ruby-1.9,zend-5.6,haproxy-1.4} 2>/dev/null) | $1
 }
 
 # Get the start order from installed carts
@@ -54,6 +54,11 @@ function get_installed_databases {
 function start_app {
     set_app_state started
 
+    for db in `awk 'BEGIN { for (a in ENVIRON) if (a ~ /_DB_TYPE$/) print ENVIRON[a] }'`
+    do
+        run_as_user "${CARTRIDGE_BASE_PATH}/${db}*/info/bin/app_ctl.sh start" || error "Failed to start ${db}" 121
+    done
+
     for cart in $(get_start_order)
     do
         run_as_user "${CARTRIDGE_BASE_PATH}/$cart/info/bin/app_ctl.sh start" || error "Failed to start ${cart}" 121
@@ -67,15 +72,17 @@ function stop_app {
     do
         run_as_user "${CARTRIDGE_BASE_PATH}/$cart/info/bin/app_ctl.sh stop" || error "Failed to stop ${cart}" 121
     done
+
+    for db in `awk 'BEGIN { for (a in ENVIRON) if (a ~ /_DB_TYPE$/) print ENVIRON[a] }'`
+    do
+        run_as_user "${CARTRIDGE_BASE_PATH}/${db}*/info/bin/app_ctl.sh stop" || error "Failed to start ${db}" 121
+    done
 }
 
 function start_dbs {
-    for cmd in `awk 'BEGIN {
-                        for (a in ENVIRON)
-                        if (a ~ /DB_CTL_SCRIPT$/)
-                            print ENVIRON[a] }'`
+    for db in `awk 'BEGIN { for (a in ENVIRON) if (a ~ /_DB_TYPE$/) print ENVIRON[a] }'`
     do
-        $cmd start || error "Failed to start ${cmd}" 121
+        ${CARTRIDGE_BASE_PATH}/${db}*/info/bin/app_ctl.sh start || error "Failed to start ${db}" 121
     done
 }
 

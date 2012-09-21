@@ -18,11 +18,23 @@ fi
 
 validate_run_as_user
 
-mysql_ctl="${CARTRIDGE_BASE_PATH}/$cartridge_type/info/bin/mysql_ctl.sh"
+cmd=""
 
 case "$1" in
-    start)                    "$mysql_ctl" start    ;;
-    restart|reload|graceful)  "$mysql_ctl" restart  ;;
-    stop|graceful-stop)       "$mysql_ctl" stop     ;;
-    status)                   "$mysql_ctl" status   ;;
+    start)                    cmd="start"    ;;
+    restart|reload|graceful)  cmd="restart"  ;;
+    stop|graceful-stop)       cmd="stop"     ;;
+    status)                   cmd="status"   ;;
 esac
+
+if [ "${cmd}" == "" ]; then
+    exit 0
+fi
+
+if [ -f $OPENSHIFT_HOMEDIR/.env/.uservars/OPENSHIFT_MYSQL_DB_GEAR_UUID ]; then
+    mysql_ctl="ssh $OPENSHIFT_MYSQL_DB_GEAR_UUID@$OPENSHIFT_MYSQL_DB_GEAR_DNS rhcsh ${CARTRIDGE_BASE_PATH}/$cartridge_type/info/bin/mysql_ctl.sh $cmd"
+else
+    mysql_ctl="${CARTRIDGE_BASE_PATH}/$cartridge_type/info/bin/mysql_ctl.sh $cmd"
+fi
+
+$mysql_ctl

@@ -17,10 +17,7 @@ source ${CARTRIDGE_BASE_PATH}/abstract/info/lib/util
 framework_carts=($(get_installed_framework_carts))
 primary_framework_cart=${framework_carts[0]}
 
-#TODO: if [ "${OPENSHIFT_GEAR_TYPE}" != "haproxy-1.4" ]
-#then
 ${CARTRIDGE_BASE_PATH}/${primary_framework_cart}/info/bin/build.sh
-#fi
 
 # Run user build
 user_build.sh
