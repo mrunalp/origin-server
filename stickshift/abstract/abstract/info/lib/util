@@ -153,25 +153,11 @@ function convert_cart_name_to_namespace_id {
 }
 
 #
-# Get the primary framework run dir in a gear
-#
-function get_framework_run_dir() {
-    uuid=$1
-    for env_var in `ls /var/lib/stickshift/$uuid/.env/{OPENSHIFT_PHP_RUN_DIR,OPENSHIFT_PERL_RUN_DIR,OPENSHIFT_PYTHON_RUN_DIR,OPENSHIFT_RUBY_RUN_DIR,OPENSHIFT_JBOSSAS_RUN_DIR,OPENSHIFT_JBOSSEAP_RUN_DIR,OPENSHIFT_NODEJS_RUN_DIR,OPENSHIFT_ZEND_RUN_DIR} 2> /dev/null`; do
-        source $env_var
-        get_env_var_dynamic $(basename $env_var)
-    done
-}
-
-#
 # Get the primary framework ctl script
 #
 function get_framework_ctl_script() {
-    uuid=$1
-    for env_var in `ls /var/lib/stickshift/$uuid/.env/{OPENSHIFT_PHP_CART_CTL_SCRIPT,OPENSHIFT_PERL_CART_CTL_SCRIPT,OPENSHIFT_PYTHON_CART_CTL_SCRIPT,OPENSHIFT_RUBY_CART_CTL_SCRIPT,OPENSHIFT_JBOSSAS_CART_CTL_SCRIPT,OPENSHIFT_JBOSSEAP_CART_CTL_SCRIPT,OPENSHIFT_NODEJS_CART_CTL_SCRIPT,OPENSHIFT_ZEND_CART_CTL_SCRIPT} 2> /dev/null`; do
-        source $env_var
-        get_env_var_dynamic $(basename $env_var)
-    done
+    framework_carts=($(get_installed_framework_carts))
+    echo ${CARTRIDGE_BASE_PATH}/${framework_carts[0]}/info/bin/app_ctl.sh
 }
 
 #
