@@ -29,28 +29,19 @@ source "/etc/stickshift/stickshift-node.conf"
 source ${CARTRIDGE_BASE_PATH}/abstract/info/lib/util
 
 setup_embedded_configure "$1" $2 $3
+import_env_vars
+
 disable_cgroups
 
 MMS_DIR=`get_cartridge_instance_dir "$cartridge_type" | tr -s /` # ensure that there aren't double /'s
 
-if [ ! -f "$APP_HOME/.env/OPENSHIFT_MONGODB_DB_USERNAME" ] ||
-   [ ! -f "$APP_HOME/.env/OPENSHIFT_MONGODB_DB_PASSWORD" ] ||
-   [ ! -f "$APP_HOME/.env/OPENSHIFT_MONGODB_DB_HOST" ] ||
-   [ ! -f "$APP_HOME/.env/OPENSHIFT_MONGODB_DB_TYPE" ] ||
-   [ ! -f "$APP_HOME/.env/OPENSHIFT_MONGODB_DB_PORT" ] 
+databases=$(get_attached_databases)
+if ! echo "$databases" |grep -q 'mongodb'
 then
    client_error ""
    client_error "MongoDB must be embedded before the 10gen MMS Agent"
    client_error ""
    exit 137
-else
-   source "$APP_HOME/.env/OPENSHIFT_MONGODB_DB_TYPE"
-   if [ $OPENSHIFT_MONGODB_DB_TYPE != "mongodb" ]; then
-      client_error ""
-      client_error "MongoDB must be embedded before the 10gen MMS Agent"
-      client_error ""
-      exit 137
-   fi
 fi
 
 #

@@ -42,5 +42,7 @@ confirm_log_files_inactive "$MMS_DIR/logs"
 
 # Remove 10gen mms agent dir. This MUST be after stopping the agent as the CTL script relies on these.
 runcon -l s0-s0:c0.c1023 rm -rf "$MMS_DIR"
+rm -f $OPENSHIFT_HOME/.env/OPENSHIFT_10GENMMSAGENT_*
+
 enable_cgroups
 

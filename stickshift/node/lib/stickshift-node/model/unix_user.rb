@@ -269,8 +269,7 @@ module StickShift
     #
     # Examples
     #
-    #  add_env_var('OPENSHIFT_DB_TYPE',
-    #               'mysql-5.3')
+    #  add_env_var('mysql-5.3')
     #  # => 36
     #
     # Returns the Integer value for how many bytes got written or raises on
@@ -310,7 +309,7 @@ module StickShift
     #
     # Examples
     #
-    #   remove_env_var('OPENSHIFT_DB_TYPE')
+    #   remove_env_var('OPENSHIFT_MONGODB_DB_URL')
     #   # => nil
     #
     # Returns an nil on success and false on failure.

@@ -10,9 +10,9 @@ do
 done
 
 # Run pre-dump dumps
-for db in `awk 'BEGIN { for (a in ENVIRON) if (a ~ /_DB_TYPE$/) print ENVIRON[a] }'`
+for db in $(get_attached_databases)
 do
-    dump_cmd=${CARTRIDGE_BASE_PATH}/${db}*/info/bin/dump.sh
+    dump_cmd=${CARTRIDGE_BASE_PATH}/${db}/info/bin/dump.sh
     echo "Running extra dump for $db" 1>&2
     $dump_cmd
 done
@@ -37,9 +37,9 @@ echo "Creating and sending tar.gz" 1>&2
         ./$OPENSHIFT_GEAR_UUID
 
 # Cleanup
-for db in `awk 'BEGIN { for (a in ENVIRON) if (a ~ /_DB_TYPE$/) print ENVIRON[a] }'`
+for db in $(get_attached_databases)
 do
-    cleanup_cmd=${CARTRIDGE_BASE_PATH}/${db}*/info/bin/cleanup.sh
+    cleanup_cmd=${CARTRIDGE_BASE_PATH}/${db}/info/bin/cleanup.sh
     echo "Running extra cleanup for $db" 1>&2
     $cleanup_cmd
 done

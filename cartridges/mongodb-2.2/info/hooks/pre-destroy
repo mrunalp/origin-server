@@ -29,12 +29,7 @@ done
 source /etc/stickshift/stickshift-node.conf
 source ${CARTRIDGE_BASE_PATH}/abstract/info/lib/util
 
-app_remove_env_var OPENSHIFT_MONGODB_DB_GEAR_UUID
-app_remove_env_var OPENSHIFT_MONGODB_DB_GEAR_DNS
-app_remove_env_var OPENSHIFT_MONGODB_DB_TYPE
-app_remove_env_var OPENSHIFT_MONGODB_DB_USERNAME
-app_remove_env_var OPENSHIFT_MONGODB_DB_PASSWORD
-app_remove_env_var OPENSHIFT_MONGODB_DB_HOST
-app_remove_env_var OPENSHIFT_MONGODB_DB_PORT
-app_remove_env_var OPENSHIFT_MONGODB_DB_URL
-
+for v in `ls $GEAR_BASE_DIR/$3/.env/OPENSHIFT_MONGODB_DB*`
+do
+    app_remove_env_var $v
+done
