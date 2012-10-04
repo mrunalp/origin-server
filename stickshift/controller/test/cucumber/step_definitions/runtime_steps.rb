@@ -537,7 +537,7 @@ When /^I apply the ([^ ]+) quickstart to the application$/ do | quickstart_name 
 
     Dir.chdir(tmp_git_root) do
       run "git remote add quickstart -m master /root/li-test/quickstarts/#{quickstart_name}"
-      run "git pull -s recursive -X theirs upstream master"
+      run "git pull -s recursive -X theirs quickstart master"
       run "git push"
     end
   end
