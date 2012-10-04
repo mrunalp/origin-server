@@ -529,3 +529,16 @@ Then /^the web console for the ([^ ]+)\-([\d\.]+) cartridge at ([^ ]+) is( not)?
     assert_equal "200", res, msg
   end
 end
+
+When /^I apply the ([^ ]+) quickstart to the application$/ do | quickstart_name |
+  record_measure("Runtime Benchmark: Applying quickstart #{quickstart_name} to app #{@app.name}") do
+    tmp_git_root = "#{$temp}/#{@account.name}-#{@app.name}-clone"
+    run "git clone ssh://#{@gear.uuid}@#{@app.name}-#{@account.domain}.dev.rhcloud.com/~/git/#{@app.name}.git #{tmp_git_root}"
+
+    Dir.chdir(tmp_git_root) do
+      run "git remote add quickstart -m master /root/li-test/quickstarts/#{quickstart_name}"
+      run "git pull -s recursive -X theirs upstream master"
+      run "git push"
+    end
+  end
+end
