@@ -63,3 +63,5 @@ $(/bin/cat $CART_INFO_DIR/configuration/node_ssl_template.conf)
   Include /etc/httpd/conf.d/openshift/${uuid}_${namespace}_${application}/*.conf
 </VirtualHost>
 EOF
+
+service node-web-proxy reload

@@ -46,3 +46,5 @@ EOF
 sed "s/${application}-${namespace}/${server_alias_name}-${namespace}/g" "/etc/httpd/conf.d/openshift/${uuid}_${namespace}_${application}/routes.json" > "/etc/httpd/conf.d/openshift/${uuid}_${namespace}_${application}/routes_alias-${server_alias_name}.json"
 
 restart_httpd_graceful
+
+service node-web-proxy reload

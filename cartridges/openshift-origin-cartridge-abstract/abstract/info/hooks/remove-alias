@@ -37,3 +37,5 @@ rm -f "/etc/httpd/conf.d/openshift/${uuid}_${namespace}_${application}/server_al
 rm -f "/etc/httpd/conf.d/openshift/${uuid}_${namespace}_${application}/routes_alias-${server_alias_name}.json"
 
 restart_httpd_graceful
+
+service node-web-proxy reload
