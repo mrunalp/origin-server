@@ -1,6 +1,6 @@
 #!/usr/bin/env oo-ruby
 #--
-# Copyright 2013 Red Hat, Inc.
+# Copyright 2010 Red Hat, Inc.
 # 
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -91,14 +91,11 @@ begin
   ssl_cert_contents = File.open(ssl_cert, 'r') { |f| f.read }
   priv_key_contents = File.open(priv_key, 'r') { |f| f.read }
 
-  puts "SSL contents:"
-  puts ssl_cert_contents
-  puts "Priv key:"
-  puts priv_key_contents
   ssl_cert_name = File.basename(ssl_cert)
   priv_key_name = File.basename(priv_key)
-  frontend.add_ssl_cert(ssl_cert, ssl_cert_name, priv_key, priv_key_name,
-                        server_alias)
+
+  frontend.add_ssl_cert(ssl_cert_contents, ssl_cert_name, priv_key_contents,
+                        priv_key_name, server_alias)
 rescue Exception => e
   $stderr.puts(e.backtrace)
   exit -1
