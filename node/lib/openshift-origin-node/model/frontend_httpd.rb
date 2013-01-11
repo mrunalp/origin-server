@@ -211,6 +211,39 @@ module OpenShift
       reload_all
     end
 
+    # Public: Adds a ssl certificate for an alias
+    def add_ssl_cert(ssl_cert, ssl_cert_name, priv_key, priv_key_name,
+                     server_alias)
+      basedir = @config.get("GEAR_BASE_DIR")
+      token = "#{@container_uuid}_#{@namespace}_#{@container_name}"
+
+      path = File.join(basedir, ".httpd.d", token, server_alias)
+      ssl_cert_file_path = File.join(path, ssl_cert_name)
+      priv_key_file_path = File.join(path, priv_key_name)
+
+      FileUtils.mkdir_p(path)
+      File.open(ssl_cert_file_path, 'w') { |f| f.write(ssl_cert) }
+      File.open(priv_key_file_path, 'w') { |f| f.write(priv_key) }
+
+      # TODO: Add code to write Virtual Host entry for the alias
+    end
+
+    # Public: Removes ssl certificate associated with an alias
+    def remove_ssl_cert(ssl_cert_name, priv_key_name, server_alias)
+      basedir = @config.get("GEAR_BASE_DIR")
+      token = "#{@container_uuid}_#{@namespace}_#{@container_name}"
+
+      path = File.join(basedir, ".httpd.d", token, server_alias)
+      ssl_cert_file_path = File.join(path, ssl_cert_name)
+      priv_key_file_path = File.join(path, priv_key_name)
+
+      FileUtils.rm_rf(ssl_cert_file_path)
+      FileUtils.rm_rf(priv_key_file_path)
+
+      # TODO: Restore alias entry in rewrite map
+      # TODO: remove_alias should check for and delete the alias certs directory
+    end
+
     # Private: Validate the server name
     #
     # The name is validated against DNS host name requirements from
