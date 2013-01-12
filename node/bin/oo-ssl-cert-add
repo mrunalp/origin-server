@@ -97,6 +97,6 @@ begin
   frontend.add_ssl_cert(ssl_cert_contents, ssl_cert_name, priv_key_contents,
                         priv_key_name, server_alias)
 rescue Exception => e
-  $stderr.puts(e.backtrace)
+  $stderr.puts(e.message)
   exit -1
 end
