@@ -19,6 +19,7 @@ require 'openshift-origin-node/utils/shell_exec'
 require 'openshift-origin-common'
 require 'syslog'
 require 'fileutils'
+require 'systemu'
 
 module OpenShift
   
@@ -224,6 +225,25 @@ module OpenShift
       FileUtils.mkdir_p(path)
       File.open(ssl_cert_file_path, 'w') { |f| f.write(ssl_cert) }
       File.open(priv_key_file_path, 'w') { |f| f.write(priv_key) }
+
+      # Verify the cert and the key
+      rc, out, errout = systemu "openssl rsa -in #{priv_key_file_path}"
+      if rc != 0
+        FileUtils.rm_f(ssl_cert_file_path)
+        FileUtils.rm_f(priv_key_file_path)
+        raise FrontendHttpServerException.new("Invalid private key",
+                                              @container_uuid, @container_name,
+                                              @namespace)
+      end
+
+      rc, out, errout = systemu "openssl x509 -in #{ssl_cert_file_path} -text -noout"
+      if rc != 0
+        FileUtils.rm_f(ssl_cert_file_path)
+        FileUtils.rm_f(priv_key_file_path)
+        raise FrontendHttpServerException.new("Invalid ssl certificate",
+                                              @container_uuid, @container_name,
+                                              @namespace)
+      end
 
       # TODO: Add code to write Virtual Host entry for the alias
     end
