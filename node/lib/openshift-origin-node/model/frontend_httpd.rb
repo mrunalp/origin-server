@@ -245,7 +245,37 @@ module OpenShift
                                               @namespace)
       end
 
-      # TODO: Add code to write Virtual Host entry for the alias
+      # Virtual Host entry for the server alias
+      vhost_entry_contents = <<-VHOST_ENTRY
+<VirtualHost #{server_alias}:443>
+  ServerName #{server_alias}
+  ServerAdmin admin@#{server_alias}
+  DocumentRoot /var/www/html
+  RedirectMatch ^/$ /app
+  SSLEngine on
+  SSLCertificateFile #{ssl_cert_file_path}
+  SSLCertificateKeyFile #{priv_key_file_path}
+  RequestHeader set X_FORWARDED_PROTO 'https'
+  ProxyTimeout 300
+
+  RequestHeader set X-Forwarded-SSL-Client-Cert %{SSL_CLIENT_CERT}e
+  RequestHeader append X-Forwarded-Proto "https"
+
+  include conf.d/openshift_route.include
+
+</VirtualHost>
+      VHOST_ENTRY
+
+      vhost_conf_file_path = File.join(basedir, ".httpd.d", token,
+                                       "#{server_alias}.conf")
+      File.open(vhost_conf_file_path, 'w') { |f| f.write(vhost_entry_contents) }
+
+      # TODO: Write the top level include file under .httpd.d directory
+
+      # TODO: Write zzzzz_proxy.conf - get information from rewrite map
+
+      # TODO: Restart apache
+
     end
 
     # Public: Removes ssl certificate associated with an alias
@@ -256,12 +286,16 @@ module OpenShift
       path = File.join(basedir, ".httpd.d", token, server_alias)
       ssl_cert_file_path = File.join(path, ssl_cert_name)
       priv_key_file_path = File.join(path, priv_key_name)
+      vhost_conf_file_path = File.join(basedir, ".httpd.d", token,
+                                       "#{server_alias}.conf")
 
       FileUtils.rm_rf(ssl_cert_file_path)
       FileUtils.rm_rf(priv_key_file_path)
+      FileUtils.rm_rf(vhost_conf_file_path)
 
       # TODO: Restore alias entry in rewrite map
       # TODO: remove_alias should check for and delete the alias certs directory
+      # TODO: Restart apache
     end
 
     # Private: Validate the server name
