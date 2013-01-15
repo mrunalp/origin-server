@@ -213,9 +213,9 @@ module OpenShift
       basedir = @config.get("GEAR_BASE_DIR")
       token = "#{@container_uuid}_#{@namespace}_#{@container_name}"
 
-      vhost_cert_dir_path = File.join(basedir, ".httpd.d", token, server_alias)
+      vhost_cert_dir_path = File.join(basedir, ".httpd.d", token, dname)
       vhost_conf_file_path = File.join(basedir, ".httpd.d", token,
-                                       "#{server_alias}.conf")
+                                       "#{dname}.conf")
 
       FileUtils.rm_rf(vhost_conf_file_path)
       FileUtils.rm_rf(vhost_cert_dir_path)
@@ -258,7 +258,7 @@ module OpenShift
 
       # Virtual Host entry for the server alias
       vhost_entry_contents = <<-VHOST_ENTRY
-<VirtualHost #{server_alias}:443>
+<VirtualHost *:443>
   ServerName #{server_alias}
   ServerAdmin admin@#{server_alias}
   DocumentRoot /var/www/html
@@ -266,11 +266,10 @@ module OpenShift
   SSLEngine on
   SSLCertificateFile #{ssl_cert_file_path}
   SSLCertificateKeyFile #{priv_key_file_path}
-  RequestHeader set X_FORWARDED_PROTO 'https'
   ProxyTimeout 300
 
   RequestHeader set X-Forwarded-SSL-Client-Cert %{SSL_CLIENT_CERT}e
-  RequestHeader append X-Forwarded-Proto "https"
+  RequestHeader set X-Forwarded-Proto "https"
 
   include conf.d/openshift_route.include
 
