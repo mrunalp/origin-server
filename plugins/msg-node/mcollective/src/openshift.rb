@@ -369,18 +369,12 @@ module MCollective
           out, err, rc = frontend.add_ssl_cert(ssl_cert, ssl_cert_name,
                                                priv_key, priv_key_name,
                                                server_alias)
-        rescue OpenShift::FrontendHttpServerException => e
-          Log.instance.info e.message
-          Log.instance.info e.backtrace
-          return 129, e.message
         rescue Exception => e
           Log.instance.info e.message
           Log.instance.info e.backtrace
           return -1, e.message
         else
-          output << out
-          output << err
-          return rc, output
+          return 0, output
         end
       end
 
@@ -401,18 +395,12 @@ module MCollective
                                                        container_name, namespace)
           out, err, rc = frontend.remove_ssl_cert(ssl_cert_name, priv_key_name,
                                                   server_alias)
-        rescue OpenShift::FrontendHttpServerException => e
-          Log.instance.info e.message
-          Log.instance.info e.backtrace
-          return 129, e.message
         rescue Exception => e
           Log.instance.info e.message
           Log.instance.info e.backtrace
           return -1, e.message
         else
-          output << out
-          output << err
-          return rc, output
+          return 0, output
         end
       end
 
