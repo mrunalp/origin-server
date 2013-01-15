@@ -209,6 +209,17 @@ module OpenShift
         FileUtils.rm_f(path)
       end
 
+      # Remove alias specific configuration and certs on the gear
+      basedir = @config.get("GEAR_BASE_DIR")
+      token = "#{@container_uuid}_#{@namespace}_#{@container_name}"
+
+      vhost_cert_dir_path = File.join(basedir, ".httpd.d", token, server_alias)
+      vhost_conf_file_path = File.join(basedir, ".httpd.d", token,
+                                       "#{server_alias}.conf")
+
+      FileUtils.rm_rf(vhost_conf_file_path)
+      FileUtils.rm_rf(vhost_cert_dir_path)
+
       reload_all
     end
 
