@@ -209,16 +209,18 @@ module OpenShift
         FileUtils.rm_f(path)
       end
 
-      # Remove alias specific configuration and certs on the gear
+      #
+      # Cleanup for alias specific configuration
+      # 
       basedir = @config.get("GEAR_BASE_DIR")
-      token = "#{@container_uuid}_#{@namespace}_#{@container_name}"
+      alias_token = "#{@container_uuid}_#{@namespace}_#{dname}"
 
-      vhost_cert_dir_path = File.join(basedir, ".httpd.d", token, dname)
-      vhost_conf_file_path = File.join(basedir, ".httpd.d", token,
-                                       "#{dname}.conf")
+      alias_conf_dir_path = File.join(basedir, ".httpd.d", alias_token)
+      alias_conf_file_path = File.join(basedir, ".httpd.d", "#{alias_token}.conf")
 
-      FileUtils.rm_rf(vhost_conf_file_path)
-      FileUtils.rm_rf(vhost_cert_dir_path)
+      # Remove alias specific configuration and certs on the gear
+      FileUtils.rm_f(alias_conf_file_path)
+      FileUtils.rm_rf(alias_conf_dir_path)
 
       reload_all
     end
@@ -227,13 +229,17 @@ module OpenShift
     def add_ssl_cert(ssl_cert, ssl_cert_name, priv_key, priv_key_name,
                      server_alias)
       basedir = @config.get("GEAR_BASE_DIR")
-      token = "#{@container_uuid}_#{@namespace}_#{@container_name}"
 
-      path = File.join(basedir, ".httpd.d", token, server_alias)
-      ssl_cert_file_path = File.join(path, ssl_cert_name)
-      priv_key_file_path = File.join(path, priv_key_name)
+      app_token = "#{@container_uuid}_#{@namespace}_#{@container_name}"
+      alias_token = "#{@container_uuid}_#{@namespace}_#{server_alias}"
 
-      FileUtils.mkdir_p(path)
+      app_conf_dir_path = File.join(basedir, ".httpd.d", app_token)
+      alias_conf_dir_path = File.join(basedir, ".httpd.d", alias_token)
+      ssl_cert_file_path = File.join(alias_conf_dir_path, ssl_cert_name)
+      priv_key_file_path = File.join(alias_conf_dir_path, priv_key_name)
+
+      # Create a new directory for the alias and copy the certificates
+      FileUtils.mkdir_p(alias_conf_dir_path)
       File.open(ssl_cert_file_path, 'w') { |f| f.write(ssl_cert) }
       File.open(priv_key_file_path, 'w') { |f| f.write(priv_key) }
 
@@ -242,6 +248,7 @@ module OpenShift
       if rc != 0
         FileUtils.rm_f(ssl_cert_file_path)
         FileUtils.rm_f(priv_key_file_path)
+        FileUtils.rm_f(alias_conf_dir_path)
         raise FrontendHttpServerException.new("Invalid private key",
                                               @container_uuid, @container_name,
                                               @namespace)
@@ -251,61 +258,103 @@ module OpenShift
       if rc != 0
         FileUtils.rm_f(ssl_cert_file_path)
         FileUtils.rm_f(priv_key_file_path)
+        FileUtils.rm_f(alias_conf_dir_path)
         raise FrontendHttpServerException.new("Invalid ssl certificate",
                                               @container_uuid, @container_name,
                                               @namespace)
       end
 
-      # Virtual Host entry for the server alias
-      vhost_entry_contents = <<-VHOST_ENTRY
+      #
+      # Create configuration for the alias
+      #
+
+      # Create 00000_default.conf for the alias
+      default_conf_contents = <<-DEFAULT_ENTRY
+ServerName #{server_alias}
+ServerAdmin openshift-bofh@redhat.com
+DocumentRoot /var/www/html
+DefaultType None
+      DEFAULT_ENTRY
+
+      default_conf_file_path = File.join(alias_conf_dir_path, "00000_default.conf")
+      File.open(default_conf_file_path, 'w') { |f| f.write(default_conf_contents) }
+
+      # Copy zzzzz_proxy.conf for the alias
+      proxy_conf_file_src_path = File.join(app_conf_dir_path, "zzzzz_proxy.conf")
+      FileUtils.cp(proxy_conf_file_src_path, alias_conf_dir_path)
+
+      # Create top level config file for the alias
+      alias_conf_contents = <<-ALIAS_CONF_ENTRY
+<VirtualHost *:80>
+  RequestHeader append X-Forwarded-Proto "http"
+
+  Include #{alias_conf_dir_path}/*.conf
+</VirtualHost>
+
 <VirtualHost *:443>
-  ServerName #{server_alias}
-  ServerAdmin admin@#{server_alias}
-  DocumentRoot /var/www/html
-  RedirectMatch ^/$ /app
+  RequestHeader append X-Forwarded-Proto "https"
+
+# This file gets inserted into every httpd.conf ssl section
   SSLEngine on
+  
   SSLCertificateFile #{ssl_cert_file_path}
   SSLCertificateKeyFile #{priv_key_file_path}
-  ProxyTimeout 300
+  SSLCertificateChainFile #{ssl_cert_file_path}
+  SSLCipherSuite RSA:!EXPORT:!DH:!LOW:!NULL:+MEDIUM:+HIGH
+  SSLProtocol -ALL +SSLv3 +TLSv1
+  SSLOptions +StdEnvVars +ExportCertData
+  # SSLVerifyClient must be set for +ExportCertData to take effect, so just use
+  # optional_no_ca.
+  SSLVerifyClient optional_no_ca
 
   RequestHeader set X-Forwarded-SSL-Client-Cert %{SSL_CLIENT_CERT}e
-  RequestHeader set X-Forwarded-Proto "https"
 
-  include conf.d/openshift_route.include
-
+  Include #{alias_conf_dir_path}/*.conf
 </VirtualHost>
-      VHOST_ENTRY
+      ALIAS_CONF_ENTRY
 
-      vhost_conf_file_path = File.join(basedir, ".httpd.d", token,
-                                       "#{server_alias}.conf")
-      File.open(vhost_conf_file_path, 'w') { |f| f.write(vhost_entry_contents) }
+      alias_conf_file_path = File.join(basedir, ".httpd.d", "#{alias_token}.conf")
+      File.open(alias_conf_file_path, 'w') { |f| f.write(alias_conf_contents) }
 
-      # TODO: Write the top level include file under .httpd.d directory
+      # Remove original server alias conf file
+      server_alias_conf_file_path = File.join(app_conf_dir_path, "server_alias-#{server_alias}.conf")
+      FileUtils.rm_f(server_alias_conf_file_path)
 
-      # TODO: Write zzzzz_proxy.conf - get information from rewrite map
-
-      # TODO: Restart apache
-
+      # Reload httpd to pick up the new configuration
+      reload_httpd
     end
 
-    # Public: Removes ssl certificate associated with an alias
+    # Public: Removes ssl certificate/private key associated with an alias
     def remove_ssl_cert(ssl_cert_name, priv_key_name, server_alias)
       basedir = @config.get("GEAR_BASE_DIR")
-      token = "#{@container_uuid}_#{@namespace}_#{@container_name}"
 
-      path = File.join(basedir, ".httpd.d", token, server_alias)
-      ssl_cert_file_path = File.join(path, ssl_cert_name)
-      priv_key_file_path = File.join(path, priv_key_name)
-      vhost_conf_file_path = File.join(basedir, ".httpd.d", token,
-                                       "#{server_alias}.conf")
+      #
+      # Remove the alias specific configuration
+      #
+      app_token = "#{@container_uuid}_#{@namespace}_#{@container_name}"
+      alias_token = "#{@container_uuid}_#{@namespace}_#{server_alias}"
 
-      FileUtils.rm_rf(ssl_cert_file_path)
-      FileUtils.rm_rf(priv_key_file_path)
-      FileUtils.rm_rf(vhost_conf_file_path)
+      app_conf_dir_path = File.join(basedir, ".httpd.d", app_token)
+      alias_conf_dir_path = File.join(basedir, ".httpd.d", alias_token)
+      #ssl_cert_file_path = File.join(alias_conf_dir_path, ssl_cert_name)
+      #priv_key_file_path = File.join(alias_conf_dir_path, priv_key_name)
+      alias_conf_file_path = File.join(basedir, ".httpd.d", "#{alias_token}.conf")
 
-      # TODO: Restore alias entry in rewrite map
-      # TODO: remove_alias should check for and delete the alias certs directory
-      # TODO: Restart apache
+      #FileUtils.rm_rf(ssl_cert_file_path)
+      #FileUtils.rm_rf(priv_key_file_path)
+      FileUtils.rm_rf(alias_conf_file_path)
+      FileUtils.rm_rf(alias_conf_dir_path)
+
+      # Re-create original server alias conf file
+      server_alias_conf_contents = <<-SERVER_ALIAS_ENTRY
+ServerName #{server_alias}
+      SERVER_ALIAS_ENTRY
+
+      server_alias_conf_file_path = File.join(app_conf_dir_path, "server_alias-#{server_alias}.conf")
+      File.open(server_alias_conf_file_path, 'w') { |f| f.write(server_alias_conf_contents) }
+
+      # Reload httpd to pick up the configuration changes
+      reload_httpd
     end
 
     # Private: Validate the server name
