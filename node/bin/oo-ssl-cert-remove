@@ -19,18 +19,22 @@ def usage
   puts <<USAGE
 == Synopsis
 
-#{$0}: Remove ssl certificate associated with an alias in a gear.
+#{$0}: Remove ssl certificate/private key associated with an alias in a gear.
   This command must be run as root.
 
 == Usage
 
 #{$0} --with-container-uuid UUID \\
+               --with-ssl-cert SSL_CERT_FILE_NAME \\
+               --with-priv-key PRIV_KEY_FILE_NAME \\
                --with-container-name NAME \\
                --with-namespace NAMESPACE \\
                --with-alias-name ALIAS
 
 == List of arguments
-  -a|--with-alias-name      alias       Alias to add to the gear
+  -s|--with-ssl-cert-name   ssl_cert    Name of the SSL certificate file to be removed
+  -k|--with-priv-key-name   priv_key    Name of the private key to be removed
+  -a|--with-alias-name      alias       Alias from which cert/key are to be removed
   -c|--with-container-uuid  gear_uuid   Unique identifier for the gear(required)
     |--with-namespace       namespace   Namespace of the application (required)
     |--with-container-name  gear_name   Name of the gear

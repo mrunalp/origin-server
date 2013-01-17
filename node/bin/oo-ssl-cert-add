@@ -19,18 +19,22 @@ def usage
   puts <<USAGE
 == Synopsis
 
-#{$0}: Add a ssl certificate for an alias to a gear.
+#{$0}: Add a ssl certificate/private key for an alias(custom domain) to a gear.
   This command must be run as root.
 
 == Usage
 
 #{$0} --with-container-uuid UUID \\
+               --with-ssl-cert SSL_CERT_PATH \\
+               --with-priv-key PRIV_KEY_PATH \\
                --with-container-name NAME \\
                --with-namespace NAMESPACE \\
                --with-alias-name ALIAS
 
 == List of arguments
-  -a|--with-alias-name      alias       Alias to add to the gear
+  -s|--with-ssl-cert        ssl_cert    SSL certificate to add to the gear
+  -k|--with-priv-key        priv_key    Private key for the SSL certificate
+  -a|--with-alias-name      alias       Alias for which cert/key are added
   -c|--with-container-uuid  gear_uuid   Unique identifier for the gear(required)
     |--with-namespace       namespace   Namespace of the application (required)
     |--with-container-name  gear_name   Name of the gear
