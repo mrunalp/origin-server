@@ -362,7 +362,7 @@ DefaultType None
 
       # Re-create original server alias conf file
       server_alias_conf_contents = <<-SERVER_ALIAS_ENTRY
-ServerName #{server_alias}
+ServerAlias #{server_alias}
       SERVER_ALIAS_ENTRY
 
       server_alias_conf_file_path = File.join(app_conf_dir_path, "server_alias-#{server_alias}.conf")
