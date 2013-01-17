@@ -247,6 +247,13 @@ module OpenShift
                                               @namespace)
       end
 
+      # Make sure that the private key is not encrypted
+      if priv_key.include? "ENCRYPTED"
+        raise FrontendHttpServerException.new("Private key is encrypted",
+                                              @container_uuid, @container_name,
+                                              @namespace)
+      end
+
       # Create a new directory for the alias and copy the certificates
       FileUtils.mkdir_p(alias_conf_dir_path)
       File.open(ssl_cert_file_path, 'w') { |f| f.write(ssl_cert) }
