@@ -238,6 +238,15 @@ module OpenShift
       ssl_cert_file_path = File.join(alias_conf_dir_path, ssl_cert_name)
       priv_key_file_path = File.join(alias_conf_dir_path, priv_key_name)
 
+      # Check if the specified alias has been created for the app
+      server_alias_conf_file_path = File.join(app_conf_dir_path, "server_alias-#{server_alias}.conf")
+      
+      unless File.exists? (server_alias_conf_file_path)
+        raise FrontendHttpServerException.new("Specified alias #{server_alias} does not exist for the app",
+                                              @container_uuid, @container_name,
+                                              @namespace)
+      end
+
       # Create a new directory for the alias and copy the certificates
       FileUtils.mkdir_p(alias_conf_dir_path)
       File.open(ssl_cert_file_path, 'w') { |f| f.write(ssl_cert) }
@@ -317,7 +326,6 @@ DefaultType None
       File.open(alias_conf_file_path, 'w') { |f| f.write(alias_conf_contents) }
 
       # Remove original server alias conf file
-      server_alias_conf_file_path = File.join(app_conf_dir_path, "server_alias-#{server_alias}.conf")
       FileUtils.rm_f(server_alias_conf_file_path)
 
       # Reload httpd to pick up the new configuration
