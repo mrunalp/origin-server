@@ -23,10 +23,21 @@ module OpenShift
   class UtilsSpawnFunctionalTest < Test::Unit::TestCase
 
     def setup
-      @homedir = '/tmp/tests'
       @uid     = 1000
+      @homedir = "/tmp/tests/#@uid"
 
+      # polyinstantiation makes creating the homedir a pain...
+      FileUtils.rm_r @homedir if File.exist?(@homedir)
       FileUtils.mkpath(@homedir)
+      %x{useradd -u #@uid -d #@homedir #@uid 1>/dev/null 2>&1}
+      %x{chown -R #@uid:#@uid #@homedir}
+      FileUtils.mkpath(File.join(@homedir, '.tmp', @uid.to_s))
+      FileUtils.chmod(0, File.join(@homedir, '.tmp'))
+    end
+
+    def teardown
+      %x{userdel #@uid 1>/dev/null}
+      %x{rm -rf #@homedir}
     end
 
     def test_run_as

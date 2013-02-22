@@ -26,9 +26,10 @@ module OpenShift
 
     class ShellExecutionException < Exception
       attr_accessor :rc, :stdout, :stderr
+
       def initialize(msg, rc=-1, stdout = nil, stderr = nil)
         super msg
-        self.rc = rc
+        self.rc     = rc
         self.stdout = stdout
         self.stderr = stderr
       end
@@ -66,45 +67,34 @@ module OpenShift
     #                              : If not set spawn() returns exitstatus from command otherwise
     #                              : raise an error if exitstatus is not expected_exitstatus
     #   :timeout                   : Maximum number of seconds to wait for command to finish. default: 3600
-    #   :uid                       : fork and spawn command as given user, :expected_exitstatus is not supported.
-    #   :gid                       : fork and spawn command as given user's group, defaults to uid
+    #   :uid                       : spawn command as given user in a SELinux context using runuser/runcon,
+    #                              : stdin for the command is /dev/null
     def self.oo_spawn(command, options = {})
+      options[:env]         ||= {}
+      options[:timeout]     ||= 3600
+      options[:buffer_size] ||= 32768
+
       opts                   = {}
-      opts[:chdir]           = (options[:chdir] ||= '.')
       opts[:unsetenv_others] = (options[:unsetenv_others] ||= false)
       opts[:close_others]    = true
-      options[:env]          ||= {}
-      options[:gid]          ||= options[:uid]
-      options[:timeout]      ||= 3600
-      options[:buffer_size]  ||= 32768
+      opts[:chdir] = options[:chdir] unless options[:chdir].nil?
 
       IO.pipe do |read_stderr, write_stderr|
         IO.pipe do |read_stdout, write_stdout|
-          opts[:in]  = :close
           opts[:out] = write_stdout
           opts[:err] = write_stderr
 
-          pid = if options[:uid]
-                  # lazy init otherwise we end up with a cyclic require...
-                  require 'openshift-origin-node/model/unix_user'
+          if options[:uid]
+            # lazy init otherwise we end up with a cyclic require...
+            require 'openshift-origin-node/model/unix_user'
 
-                  mcs_level = OpenShift::UnixUser.get_mcs_label options[:uid]
-                  cmd       = %Q{/usr/bin/runcon -r system_r -t openshift_t -l #{mcs_level} /bin/bash -c "#{command}"}
-                  NodeLogger.logger.debug { "oo_spawn running #{cmd}" }
-
-                  fork do
-                    Process::GID.change_privilege(options[:gid].to_i)
-                    Process::UID.change_privilege(options[:uid].to_i)
-                    grandchild = Kernel.spawn(options[:env], cmd, opts)
-
-                    _, status = Process.wait2 grandchild
-                    NodeLogger.logger.debug { "oo_spawn ran #{command}: #{status.exitstatus}" }
-                    exit!(status.exitstatus)
-                  end
-                else
-                  NodeLogger.logger.debug { "oo_spawn running #{command}" }
-                  Kernel.spawn(options[:env], command, opts)
-                end
+            opts[:in] = '/dev/null'
+            context   = %Q{unconfined_u:system_r:openshift_t:#{UnixUser.get_mcs_label(options[:uid])}}
+            name      = Etc.getpwuid(options[:uid]).name
+            command   = %Q{/sbin/runuser -m -s /bin/sh #{name} -c "exec /usr/bin/runcon '#{context}' /bin/sh -c \\"#{command}\\""}
+          end
+          NodeLogger.logger.debug { "oo_spawn running #{command}" }
+          pid = Kernel.spawn(options[:env], command, opts)
 
           unless pid
             raise OpenShift::Utils::ShellExecutionException.new(
@@ -117,6 +107,7 @@ module OpenShift
             out, err = read_results(read_stdout, read_stderr, options)
 
             _, status = Process.wait2 pid
+            NodeLogger.logger.debug { "oo_spawn ran #{command}: #{status.exitstatus}" }
 
             if (!options[:expected_exitstatus].nil?) && (status.exitstatus != options[:expected_exitstatus])
               raise OpenShift::Utils::ShellExecutionException.new(
@@ -158,7 +149,7 @@ module OpenShift
               buffer = (fd == stdout) ? out : err
               begin
                 buffer << fd.readpartial(options[:buffer_size])
-                NodeLogger.trace_logger.debug{ "oo_spawn buffer(#{fd.fileno}/#{fd.pid}) #{buffer}"}
+                NodeLogger.trace_logger.debug { "oo_spawn buffer(#{fd.fileno}/#{fd.pid}) #{buffer}" }
               rescue Errno::EAGAIN, Errno::EINTR
               rescue EOFError
                 readers.delete(fd)
@@ -198,13 +189,13 @@ module OpenShift::Utils
       out = err = rc = nil
       begin
         # Using Open4 spawn with cwd isn't thread safe
-        m_cmd = "cd #{pwd} && ( #{cmd} )"
+        m_cmd                      = "cd #{pwd} && ( #{cmd} )"
         pid, stdin, stdout, stderr = Open4.popen4ext(true, m_cmd)
         begin
           stdin.close
-          out = err = ""
-          fds = [ stdout, stderr ]
-          buffs = { stdout.fileno => out, stderr.fileno => err }
+          out   = err = ""
+          fds   = [stdout, stderr]
+          buffs = {stdout.fileno => out, stderr.fileno => err}
           Timeout::timeout(timeout) do
             while not fds.empty?
               rs, ws, es = IO.select(fds, nil, nil)
@@ -229,12 +220,12 @@ module OpenShift::Utils
         end
       rescue Exception => e
         raise OpenShift::Utils::ShellExecutionException.new(e.message, rc, out, err
-                                                      ) unless ignore_err
+              ) unless ignore_err
       end
 
       if !ignore_err and rc != expected_rc
         raise OpenShift::Utils::ShellExecutionException.new(
-          "Shell command '#{cmd}' returned an error. rc=#{rc}", rc, out, err)
+                  "Shell command '#{cmd}' returned an error. rc=#{rc}", rc, out, err)
       end
       return [out, err, rc]
     end
@@ -245,7 +236,7 @@ module OpenShift::Utils
     def self.kill_process_tree(pid)
       ps_results = `ps -e -opid,ppid --no-headers`.split("\n")
 
-      ps_tree = Hash.new {|h, k| h[k] = [k]}
+      ps_tree = Hash.new { |h, k| h[k] = [k] }
       ps_results.each { |pair|
         p, pp = pair.split(' ')
         ps_tree[pp.to_i] << p.to_i
@@ -256,10 +247,10 @@ module OpenShift::Utils
     def self.run_as(uid, gid, cmd, pwd = ".", ignore_err = true, expected_rc = 0, timeout = 3600)
       mcs_level, err, rc = OpenShift::Utils::ShellExec.shellCmd("/usr/bin/oo-get-mcs-level #{uid}", pwd, true, 0, timeout)
       raise OpenShift::Utils::ShellExecutionException.new(
-        "Shell command '#{cmd}' returned an error. rc=#{rc}. output=#{err}", rc, mcs_level, err) if 0 != rc
+                "Shell command '#{cmd}' returned an error. rc=#{rc}. output=#{err}", rc, mcs_level, err) if 0 != rc
 
       command = "/usr/bin/runcon -r system_r -t openshift_t -l #{mcs_level.chomp} #{cmd}"
-      pid = fork {
+      pid     = fork {
         Process::GID.change_privilege(gid.to_i)
         Process::UID.change_privilege(uid.to_i)
         out, err, rc = OpenShift::Utils::ShellExec.shellCmd(command, pwd, true, 0, timeout)
@@ -271,12 +262,12 @@ module OpenShift::Utils
         rc = $?.exitstatus
         if !ignore_err and rc != expected_rc
           raise OpenShift::Utils::ShellExecutionException.new(
-            "Shell command '#{command}' returned an error. rc=#{rc}", rc)
+                    "Shell command '#{command}' returned an error. rc=#{rc}", rc)
         end
         return rc
       else
         raise OpenShift::Utils::ShellExecutionException.new(
-          "Shell command '#{command}' fork failed in run_as().")
+                  "Shell command '#{command}' fork failed in run_as().")
       end
     end
   end

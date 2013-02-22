@@ -47,6 +47,7 @@ module OpenShift
     # TODO: Caching?
     def get_cartridge(cart_name)
       begin
+        # FIXME: Cannot pull from system path need to use local copy
         manifest_path = File.join(get_system_cartridge_path(cart_name), 'metadata', 'manifest.yml')
         manifest      = YAML.load_file(manifest_path)
         return OpenShift::Runtime::Cartridge.new(manifest)
@@ -84,12 +85,12 @@ module OpenShift
     # ruby-1.9 -> /usr/libexec/openshift/cartridges/v2/ruby
     #
     # In the future, it is expected that the version will be a notion which
-    # is more fundamental to the platform and will be reflected in the 
+    # is more fundamental to the platform and will be reflected in the
     # Cartridge class itself.
     def get_system_cartridge_path(cart_name)
-      index = cart_name.rindex(/-[\d\.]+$/)
+      index            = cart_name.rindex(/-[\d\.]+$/)
       system_cart_name = cart_name
-      
+
       if index
         system_cart_name = cart_name.slice(0...index)
       end
@@ -97,7 +98,7 @@ module OpenShift
       File.join(@config.get('CARTRIDGE_BASE_PATH'), 'v2', system_cart_name)
     end
 
-    # Get the argument to pass as the version to the setup script 
+    # Get the argument to pass as the version to the setup script
     # for the given cartridge name.  See the comment for get_system_cartridge_path
     # for WIP version semantics.
     def get_cartridge_version_argument(cartridge_name)
@@ -170,11 +171,11 @@ module OpenShift
             process_erb_templates(cartridge_name)
           end
         end
-        do_control('start', cartridge_name)
-
-        logger.info "configure output: #{output}"
-        output
       end
+
+      output << do_control('start', cartridge_name)
+      logger.info "configure output: #{output}"
+      output
     end
 
     # deconfigure(cartridge_name) -> nil
@@ -216,17 +217,19 @@ module OpenShift
     #   v2_cart_model.lock_files("php-5.3")
     def lock_files(cartridge_name)
       locked_files = File.join(cartridge_name, 'metadata', 'locked_files.txt')
-      return [@user.homedir] unless File.exist? locked_files
+      return [] unless File.exist? locked_files
 
-      File.readlines(locked_files).each_with_object([@user.homedir]) do |line, memo|
+      File.readlines(locked_files).each_with_object([]) do |line, memo|
         line.chomp!
         case
+          when line.empty?
+            # skip blank lines
           when line.end_with?('/*')
             memo << Dir.glob(File.join(@user.homedir, line)).select { |f| File.file?(f) }
           when FILENAME_BLACKLIST.include?(line)
-            logger.info("#{cartridge_name} attempted lock/unlock on black listed entry #{line}")
+            logger.info("#{cartridge_name} attempted lock/unlock on black listed entry [#{line}]")
           when !(line.start_with?('.') || line.start_with?(cartridge_name) || line.start_with?('app-root'))
-            logger.info("#{cartridge_name} attempted lock/unlock on out-of-bounds entry #{line}")
+            logger.info("#{cartridge_name} attempted lock/unlock on out-of-bounds entry [#{line}]")
           else
             memo << File.join(@user.homedir, line)
         end
@@ -259,9 +262,17 @@ module OpenShift
               expected_exitstatus: 0
           )
         rescue Utils::ShellExecutionException => e
-          raise OpenShift::FileUnlockError.new("Failed to unlock file system entry #{entry}: #{e.stderr}",
+          raise OpenShift::FileUnlockError.new("Failed to unlock file system entry [#{entry}]: #{e.stderr}",
                                                entry)
         end
+      end
+
+      begin
+        Utils.oo_spawn("chown #{@user.uid}:#{@user.gid} #{@user.homedir}", expected_exitstatus: 0)
+      rescue Utils::ShellExecutionException => e
+        raise OpenShift::FileUnlockError.new(
+                  "Failed to unlock gear home [#{@user.homedir}]: #{e.stderr}",
+                  @user.homedir)
       end
     end
 
@@ -279,21 +290,20 @@ module OpenShift
         begin
           Utils.oo_spawn(
               "chown root:#{@user.gid} #{entry};
-               chcon system_u:object_r:openshift_var_lib_t:#{mcs_label} #{entry}",
+               chcon unconfined_u:object_r:openshift_var_lib_t:#{mcs_label} #{entry}",
               expected_exitstatus: 0)
         rescue Utils::ShellExecutionException => e
-          raise OpenShift::FileLockError.new("Failed to lock file system entry #{entry}: #{e.stderr}",
+          raise OpenShift::FileLockError.new("Failed to lock file system entry [#{entry}]: #{e.stderr}",
                                              entry)
         end
       end
-    end
 
-    def create_standard_env_vars(cart_name)
-      # TODO: determine which env vars to create
-      #  LOG_DIR
-      #  add bin directory to PATH
-
-
+      begin
+        Utils.oo_spawn("chown root:#{@user.gid} #{@user.homedir}", expected_exitstatus: 0)
+      rescue Utils::ShellExecutionException => e
+        raise OpenShift::FileLockError.new("Failed to lock gear home [#{@user.homedir}]: #{e.stderr}",
+                                           @user.homedir)
+      end
     end
 
     # create_cartridge_directory(cartridge name) -> nil
@@ -324,6 +334,12 @@ module OpenShift
            chcon -R unconfined_u:object_r:openshift_var_lib_t:#{mcs_label} #{target}",
           expected_exitstatus: 0
       )
+
+      Utils.oo_spawn(
+          "chcon system_u:object_r:bin_t:s0 #{File.join(target, 'bin', '*')}",
+          expected_exitstatus: 0
+      )
+
       logger.info("Created cartridge directory #{cartridge_name} for #{@user.uuid}")
       nil
     end
@@ -364,12 +380,11 @@ module OpenShift
     #
     #   stdout = cartridge_setup('php-5.3')
     def cartridge_setup(cartridge_name)
-      logger.info "Running setup for #{cartridge_name}"
-      # FIXME: Where?
-      # setup IP Addresses
+      logger.info "Running #{cartridge_name} setup for #{@user.uuid}"
 
       gear_env = Utils::Environ.load('/etc/openshift/env',
                                      File.join(@user.homedir, '.env'))
+      trace_logger.debug { "gear_env: #{gear_env.inspect}" }
 
       cartridge_home     = File.join(@user.homedir, cartridge_name)
       cartridge_env_home = File.join(cartridge_home, 'env')
@@ -381,20 +396,15 @@ module OpenShift
       version = get_cartridge_version_argument(cartridge_name)
 
       setup = File.join(cartridge_home, 'bin', 'setup')
-      # TODO: establish convention for invoking setup with a version.
       setup << " --version #{version}" if version
 
-      out, err, rc = Utils.oo_spawn(setup,
-                                    env:             cartridge_env,
-                                    unsetenv_others: true,
-                                    chdir:           @user.homedir,
-                                    uid:             @user.uid)
-
-      raise Utils::ShellExecutionException.new(
-                "Failed to execute: #{setup} for #{@user.uuid} in #{@user.homedir}",
-                rc, out, err) unless 0 == rc
-      logger.info("Ran setup for #{cartridge_name} for user #{@user.uuid} in #{cartridge_home}")
-      logger.info("Setup output: #{out}")
+      out, _, _ = Utils.oo_spawn(setup,
+                                 env:                 cartridge_env,
+                                 unsetenv_others:     true,
+                                 chdir:               @user.homedir,
+                                 uid:                 @user.uid,
+                                 expected_exitstatus: 0)
+      logger.info("Ran #{cartridge_name} setup for #{@user.uuid}\n#{out}")
       out
     end
 

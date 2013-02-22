@@ -489,7 +489,7 @@ Dir(after)    #{@uuid}/#{@uid} => #{list_home_dir(@homedir)}
       add_env_var("HOMEDIR", homedir, true)
 
       add_env_var("PATH",
-                  "#{cart_basedir}abstract-httpd/info/bin/:#{cart_basedir}abstract/info/bin/:$PATH",
+                  "#{cart_basedir}/abstract-httpd/info/bin/:#{cart_basedir}/abstract/info/bin/:/bin:/sbin:/usr/bin:/usr/sbin:/$PATH",
                   false)
 
       add_env_var("REPO_DIR", File.join(gearappdir, "runtime", "repo", "/"), true) {|v|
@@ -599,14 +599,14 @@ Dir(after)    #{@uuid}/#{@uid} => #{list_home_dir(@homedir)}
         out,err,rc = OpenShift::Utils::ShellExec.shellCmd(%{/usr/bin/pgrep -u #{id}})
         break unless 0 == rc
 
-        logger.error "ERROR: attempt #{i}/10 there are running \"killed\" processes for #{id}(#{rc}): stdout: #{out} stderr: #{err}"
+        NodeLogger.logger.error "ERROR: attempt #{i}/10 there are running \"killed\" processes for #{id}(#{rc}): stdout: #{out} stderr: #{err}"
         sleep 0.5
       end
 
       # looks backwards but 0 implies processes still existed
       if 0 == rc
         out,err,rc = OpenShift::Utils::ShellExec.shellCmd("ps -u #{@uid} -o state,pid,ppid,cmd")
-        logger.error "ERROR: failed to kill all processes for #{id}(#{rc}): stdout: #{out} stderr: #{err}"
+        NodeLogger.logger.error "ERROR: failed to kill all processes for #{id}(#{rc}): stdout: #{out} stderr: #{err}"
       end
     end
 

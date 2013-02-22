@@ -16,6 +16,7 @@
 
 require 'fileutils'
 require 'etc'
+require 'pathname'
 
 module PathUtils
   def self.private_module_function(name)   #:nodoc:
@@ -50,6 +51,16 @@ module PathUtils
   end
 
   module_function :oo_chown_R
+
+  # File.join(string, ...)  ->  path
+  #
+  # Returns a new string formed by joining the strings using
+  # <code>File::SEPARATOR</code>.
+  #
+  #    PathUtils.join("usr", "mail", "gumby")   #=> "usr/mail/gumby"
+  def join(string, *smth)
+    Pathname.new(File.join(string, smth)).cleanpath.to_path
+  end
 
   def pu_get_uid(user)
     return nil unless user

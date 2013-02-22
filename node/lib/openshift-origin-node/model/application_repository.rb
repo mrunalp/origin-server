@@ -159,12 +159,12 @@ git init;
 git config user.email "builder@example.com";
 git config user.name "Template builder";
 git add -f .;
-git </dev/null commit -a -m "Creating template"
+git commit -a -m "Creating template"
 }
 
     GIT_LOCAL_CLONE = %Q{\
 set -xe;
-git </dev/null clone --bare --no-hardlinks template <%= @application_name %>.git;
+git clone --bare --no-hardlinks template <%= @application_name %>.git;
 GIT_DIR="./<%= @application_name %>.git" git repack
 }
 
