@@ -7,8 +7,8 @@ module OpenShift
         File.exists?(File.join(gear_home, '.env', MARKER))
       end
 
-      def self.mark_new_sdk_app(gear_home) 
-        FileUtils.touch(File.join(gear_home, '.env', MARKER))
+      def self.mark_new_sdk_app(gear_home)
+        IO.write(File.join(gear_home, '.env', MARKER), "export #{MARKER}=2", 0)
       end
     end
   end

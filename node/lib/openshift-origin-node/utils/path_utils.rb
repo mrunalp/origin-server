@@ -62,11 +62,13 @@ module PathUtils
     Pathname.new(File.join(string, smth)).cleanpath.to_path
   end
 
+  module_function :join
+
   def pu_get_uid(user)
     return nil unless user
     case user
       when Integer
-        user < 4294967296 ? user : Etc.getpwnam(user.to_s)
+        user < 4294967296 ? user : Etc.getpwnam(user.to_s).uid
       when /\A\d{1,10}\z/
         user.to_i
       else
@@ -81,7 +83,7 @@ module PathUtils
 
     case group
       when Integer
-        group < 4294967296 ? group : Etc.getgrnam(group.to_s)
+        group < 4294967296 ? group : Etc.getgrnam(group.to_s).gid
       when /\A\d{1,10}\z/
         group.to_i
       else

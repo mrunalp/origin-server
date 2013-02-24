@@ -384,7 +384,6 @@ module OpenShift
 
       gear_env = Utils::Environ.load('/etc/openshift/env',
                                      File.join(@user.homedir, '.env'))
-      trace_logger.debug { "gear_env: #{gear_env.inspect}" }
 
       cartridge_home     = File.join(@user.homedir, cartridge_name)
       cartridge_env_home = File.join(cartridge_home, 'env')
