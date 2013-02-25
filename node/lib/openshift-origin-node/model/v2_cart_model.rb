@@ -120,13 +120,16 @@ module OpenShift
     # destroy()
     def destroy(*)
       logger.info('V2 destroy')
+
+      buffer         = ''
       cartridge_name = 'N/A'
       process_cartridges do |path|
         begin
           cartridge_name = File.basename(path)
-          cartridge_teardown(cartridge_name)
+          buffer << cartridge_teardown(cartridge_name)
         rescue Utils::ShellExecutionException => e
           logger.warn("Cartridge teardown operation failed on gear #{@user.uuid} for cartridge #{cartridge_name}: #{e.message} (rc=#{e.rc})")
+
         end
       end
 
@@ -134,6 +137,9 @@ module OpenShift
       Dir.chdir(@config.get("GEAR_BASE_DIR")) {
         @user.destroy
       }
+
+      # FIXME: V1 contract is there a better way?
+      [buffer, '', 0]
     end
 
     # tidy() -> nil

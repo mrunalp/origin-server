@@ -57,7 +57,7 @@ module OpenShift
           Logger.new(STDERR).error { "Failed to apply logging configuration #{profile}: #{e.message}" }
         end
 
-        FileUtils.mkpath(File.dirname(log_file))
+        FileUtils.mkpath(File.dirname(log_file)) unless File.exist? File.dirname(log_file)
 
         file = if File.exist?(log_file)
                  File.open(log_file, File::WRONLY | File::APPEND)

@@ -93,7 +93,8 @@ module OpenShift
             name      = Etc.getpwuid(options[:uid]).name
             command   = %Q{/sbin/runuser -m -s /bin/sh #{name} -c "exec /usr/bin/runcon '#{context}' /bin/sh -c \\"#{command}\\""}
           end
-          NodeLogger.logger.debug { "oo_spawn running #{command}" }
+
+          NodeLogger.trace_logger.debug { "oo_spawn running #{command}" }
           pid = Kernel.spawn(options[:env], command, opts)
 
           unless pid

@@ -57,6 +57,8 @@ module OpenShift
       else
         @cartridge_model = V2CartridgeModel.new(@config, @user)
       end
+      NodeLogger.logger.debug("Creating #{build_model} model for #{container_uuid}: #{__callee__}")
+
     end
 
     def self.node_default_model(config)
