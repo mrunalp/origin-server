@@ -358,13 +358,13 @@ module OpenShift
     end
 
     def populate_gear_repo(cartridge_name, template_git_url = nil)
-      logger.info "Creating gear repo for #{cartridge_name}"
+      logger.info "Creating gear repo for #{cartridge_name} from `#{template_git_url}`"
       repo = ApplicationRepository.new(@user)
       if template_git_url.nil?
         repo.populate_from_cartridge(cartridge_name)
         repo.deploy_repository
       else
-        raise NotImplementedError('populating repo from URL unsupported')
+        raise NotImplementedError.new('populating repo from URL unsupported')
       end
       logger.info "Created gear repo for #{cartridge_name}"
     end

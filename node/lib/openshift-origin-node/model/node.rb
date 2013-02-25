@@ -39,6 +39,23 @@ module OpenShift
         end
       end
 
+      # TODO: introduce gating in this command for v2 carts
+      # TODO: encapsulate concerns re: v1/v2 cartridges on disk into 
+      #       utility classes?
+      cartridge_path = File.join(cartridge_path, 'v2')
+      Dir.foreach(cartridge_path) do |cart_dir|
+        next if [".", ".."].include? cart_dir
+        path = File.join(cartridge_path, cart_dir, "metadata", "manifest.yml")
+        begin
+          print "Loading #{cart_dir}..." if oo_debug
+          carts.push OpenShift::Cartridge.new.from_descriptor(YAML.load(File.open(path)))
+          print "OK\n" if oo_debug
+        rescue Exception => e
+          print "ERROR\n" if oo_debug
+          print "#{e.message}\n#{e.backtrace.inspect}\n" unless porcelain
+        end
+      end      
+
       print "\n\n\n" if oo_debug
 
       output = ""

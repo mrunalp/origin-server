@@ -1,12 +1,13 @@
 Name: mock
 Namespace: MOCK
-Display-Name: Mock
+Display-Name: Mock Cartridge
 Description: "A mock cartridge for development use only."
 Version: 0.1
 License: "None"
 Vendor: Red Hat
 Categories:
   - service
+  - web_framework
 Provides:
   - mock
 Scaling:
