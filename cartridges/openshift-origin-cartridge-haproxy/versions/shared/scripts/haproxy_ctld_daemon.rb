@@ -2,9 +2,6 @@
 
 require 'rubygems'
 require 'daemons'
-#require 'openshift-origin-node'
-
-cartridge_type = "haproxy-1.4"
 
 options = {
     :backgrace => true,
@@ -13,10 +10,9 @@ options = {
     :log_dir => "#{ENV['OPENSHIFT_HAPROXY_LOG_DIR']}",
     :log_output => true,
     :dir_mode => :normal,
-    :dir => "#{ENV['OPENSHIFT_HOMEDIR']}/#{cartridge_type}/run",
+    :dir => "#{ENV['OPENSHIFT_HAPROXY_DIR']}/run",
     :multiple => false,
     
 }
-#config = OpenShift::Config.instance
 
-Daemons.run('/usr/libexec/openshift/cartridges/haproxy-1.4/info/bin/haproxy_ctld.rb', options)
+Daemons.run("#{ENV['OPENSHIFT_HAPROXY_DIR']}/bin/haproxy_ctld.rb", options)

@@ -1,4 +1,4 @@
-#!/bin/bash -e
+#!/bin/bash
 
 export STOPTIMEOUT=20
 
@@ -210,3 +210,4 @@ case "$1" in
     status)              status      ;;
 esac
 
+exit 0

@@ -7,8 +7,8 @@ require 'getoptlong'
 @check_interval=3
 
 CONFIG_VALIDATION_CHECK_INTERVAL=300
-HAPROXY_CONF_DIR=File.join(ENV['OPENSHIFT_HOMEDIR'], "haproxy-1.4", "conf")
-HAPROXY_RUN_DIR=File.join(ENV['OPENSHIFT_HOMEDIR'], "haproxy-1.4", "run")
+HAPROXY_CONF_DIR=File.join(ENV['OPENSHIFT_HAPROXY_DIR'], "conf")
+HAPROXY_RUN_DIR=File.join(ENV['OPENSHIFT_HAPROXY_DIR'], "run")
 GEAR_REGISTRY_DB=File.join(HAPROXY_CONF_DIR, "gear-registry.db")
 HAPROXY_CONFIG=File.join(HAPROXY_CONF_DIR, "haproxy.cfg")
 
@@ -96,13 +96,6 @@ class HAProxyUtils
 end
 
 class Haproxy
-    #ha=Haproxy.new("#{HAPROXY_RUN_DIR}/stats")
-    #gear_namespace=ENV['OPENSHIFT_GEAR_DNS'].split('.')[0].split('-')[1]
-    #gear_count = ha.stats['express'].count - 3.0 # Remove backend, frontend and 'filler'
-    #sessions = ha.stats['express']['BACKEND'].scur.to_f
-    #sessions_per_gear = sessions / gear_count
-    #session_capacity_pct = (sessions_per_gear / MAX_SESSIONS_PER_GEAR ) * 100
-  
     MAX_SESSIONS_PER_GEAR = 10.0
 
     class ShouldRetry < StandardError
