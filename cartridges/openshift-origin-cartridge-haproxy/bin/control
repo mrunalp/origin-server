@@ -1,4 +1,5 @@
-#!/bin/bash
+#!/bin/bash -e
+source /usr/lib/openshift/node/util
 
 export STOPTIMEOUT=20
 
@@ -11,13 +12,6 @@ then
     echo "Usage: \$0 [start|restart|graceful|graceful-stop|stop]"
     exit 1
 fi
-
-#. app_ctl_pre.sh
-
-function run_user_hook() {
-  # To be implemented
-  echo "WIP"
-}
 
 function isrunning() {
     if [ -f "${HAPROXY_PID}" ]; then
@@ -53,7 +47,6 @@ function wait_to_start() {
    fi
 }
 
-
 function _stop_haproxy_ctld_daemon() {
     haproxy_ctld_daemon stop 2>&1
 }
@@ -65,27 +58,20 @@ function _start_haproxy_ctld_daemon() {
     haproxy_ctld_daemon start 2>&1
 }
 
-
 function _start_haproxy_service() {
-    set_app_state started
     if ! isrunning
     then
-        src_user_hook pre_start_${OPENSHIFT_HAPROXY_VERSION}
         ping_server_gears
         /usr/sbin/haproxy -f $OPENSHIFT_HAPROXY_DIR/conf/haproxy.cfg > $OPENSHIFT_HAPROXY_LOG_DIR/haproxy.log 2>&1
         _start_haproxy_ctld_daemon
         wait_to_start
-        run_user_hook post_start_${OPENSHIFT_HAPROXY_VERSION}
     else
         echo "HAProxy already running" 1>&2
         wait_to_start
     fi
 }
 
-
 function _stop_haproxy_service() {
-    src_user_hook pre_stop_${OPENSHIFT_HAPROXY_VERSION}
-    set_app_state stopped
     _stop_haproxy_ctld_daemon
     [ -f $HAPROXY_PID ]  &&  pid=$( /bin/cat "${HAPROXY_PID}" )
     if `ps -p $pid > /dev/null 2>&1`; then
@@ -107,7 +93,6 @@ function _stop_haproxy_service() {
             echo "HAProxy already stopped" 1>&2
         fi
     fi
-    run_user_hook post_stop_${OPENSHIFT_HAPROXY_VERSION}
 }
 
 function _restart_haproxy_service() {
@@ -117,11 +102,8 @@ function _restart_haproxy_service() {
 
 function _reload_haproxy_service() {
     [ -n "$1" ]  &&  zopts="-sf $1"
-    src_user_hook pre_start_${OPENSHIFT_HAPROXY_VERSION}
     ping_server_gears
     /usr/sbin/haproxy -f $OPENSHIFT_HAPROXY_DIR/conf/haproxy.cfg ${zopts} > /dev/null 2>&1
-    run_user_hook post_start_${OPENSHIFT_HAPROXY_VERSION}
-
 }
 
 function _reload_service() {
@@ -136,11 +118,9 @@ function _reload_service() {
     wait_to_start
 }
 
-
 function _send_client_result() {
     # Only sent client result if call done at the cartridge level.
-    [ "$OPENSHIFT_HAPROXY_VERSION" = "$HAPROXY_CART" ]  &&  client_result "$@"
-    return 0
+    client_result "$@"
 }
 
 function start() {
@@ -193,7 +173,6 @@ function status() {
     fi
     print_user_running_processes `id -u`
 }
-
 
 #
 # main():
