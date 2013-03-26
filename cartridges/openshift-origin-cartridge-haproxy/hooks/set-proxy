@@ -6,7 +6,6 @@
 set -e
 
 source /etc/openshift/node.conf
-source ${CARTRIDGE_BASE_PATH}/abstract/info/lib/util
 
 function print_help {
     echo "Usage: $0 app-name namespace uuid"
@@ -29,15 +28,11 @@ done
 
 [ $# -gt 3 ] || print_help
 
-setup_configure "$1" $2 $3
-
-import_env_vars
-
 exitcode=0
 
 declare -A curr_server_gears
 
-haproxy_cfg=$OPENSHIFT_HOMEDIR/haproxy-1.4/conf/haproxy.cfg
+haproxy_cfg=$OPENSHIFT_HAPROXY_DIR/conf/haproxy.cfg
 
 # Establish locking file descriptor
 exec 200>${haproxy_cfg}.lock
@@ -92,7 +87,13 @@ for sg in $srvgears; do
 done
 
 # Get the local app server endpoint.
-local_ep=$OPENSHIFT_INTERNAL_IP:8080
+# TODO: SDK should provide a better way to get this value
+prim_cart=$(basename $OPENSHIFT_PRIMARY_CARTRIDGE_DIR | cut -d"-" -f2 | tr [a-z] [A-Z])
+prim_cart_ip="OPENSHIFT_${prim_cart}_IP"
+prim_cart_port="OPENSHIFT_${prim_cart}_PORT"
+eval local_ip=\$${prim_cart_ip}
+eval local_port=\$${prim_cart_port}
+local_ep=$local_ip:$local_port
 
 # Disable/enable local endpoint based on number of serving gears.
 if [ $(grep -E "server\s*gear" /tmp/haproxy.cfg.$$ | wc -l) -ge 2 ]; then
@@ -110,9 +111,8 @@ rm -f /tmp/haproxy.cfg.$$
 flock -u 200
 
 uuid=$3
-setup_user_vars
-# echo "$0: reloading haproxy for application $1 - uuid $uuid ... "
-run_as_user "app_ctl.sh cond-reload"
+$OPENSHIFT_HAPROXY_DIR/bin/control restart
+#run_as_user "app_ctl.sh cond-reload"
 appctl_exitcode=$?
 
 # Pass the appropriate exit code back.

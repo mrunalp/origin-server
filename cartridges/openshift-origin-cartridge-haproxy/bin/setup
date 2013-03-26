@@ -1,7 +1,8 @@
 #!/bin/bash -e
-set -u
 set -x
+source /usr/lib/openshift/node/util
 
+set -u
 version=1.4
 
 function generate_ssh_keys {
@@ -32,5 +33,5 @@ cp $OPENSHIFT_HAPROXY_DIR/versions/shared/scripts/* $OPENSHIFT_HAPROXY_DIR/bin/
 
 generate_ssh_keys
 public_key=$(cat $OPENSHIFT_HAPROXY_DIR/.ssh/haproxy_id_rsa.pub | awk '{print $2}')
-#add_app_ssh_key $CART_NAME $public_key
-#add_broker_auth_key
+add_app_ssh_key haproxy $public_key
+add_broker_auth_key

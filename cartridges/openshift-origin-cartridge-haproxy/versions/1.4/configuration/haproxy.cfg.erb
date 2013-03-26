@@ -64,4 +64,3 @@ listen express <%= "#{ENV['OPENSHIFT_HAPROXY_IP']}:#{ENV['OPENSHIFT_HAPROXY_PORT
     option httpchk GET /
     balance leastconn
     server  filler <%= "#{ENV['OPENSHIFT_HAPROXY_STATUS_IP']}:#{ENV['OPENSHIFT_HAPROXY_STATUS_PORT']}" %> backup
-    server  local-gear <%= "#{ENV['OPENSHIFT_PHP_IP']}:#{ENV['OPENSHIFT_PHP_PORT']}" %> maxconn 2 check fall 2 rise 3 inter 2000 cookie local-<%= ENV['OPENSHIFT_GEAR_UUID'] %>
