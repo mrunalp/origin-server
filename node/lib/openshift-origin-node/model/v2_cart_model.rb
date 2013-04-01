@@ -83,6 +83,13 @@ module OpenShift
     end
 
     ##
+    # Returns the +Cartridge+ in the gear whose +web_proxy+ flag is set to
+    # true, nil otherwise
+    def web_proxy
+      each_cartridge.find { |c| c.web_proxy? }
+    end
+
+    ##
     # Detects and returns a builder +Cartridge+ in the gear if present, otherwise +nil+.
     def builder_cartridge
       builder_cart = nil
