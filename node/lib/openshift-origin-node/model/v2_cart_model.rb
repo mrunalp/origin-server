@@ -812,12 +812,39 @@ module OpenShift
       do_control_with_directory(action, options)
     end
 
+    def set_connection_hook_env_vars(cart_name, pub_cart_name, args)
+      logger.info("Setting env vars for #{cart_name} from #{pub_cart_name}")
+      logger.info("ARGS: #{args.inspect}")
+
+      env_dir_path = File.join(@user.homedir, '.env', pub_cart_name)
+      FileUtils.mkpath(env_dir_path)
+
+      # Skip the first three arguments and jump to gear => "k1=v1\nk2=v2\n" hash map
+      pairs = args[3].values[0].split("\n")
+
+      # Write out each environment variable in the payload
+      pairs.each do |pair|
+        k, v = pair.strip.split("=")
+        logger.info("#{k} --> #{v}")
+        File.open(PathUtils.join(env_dir_path, k), 'w', 0666) do |f|
+          f.write(v)
+        end
+      end
+    end
+
     # :call-seq:
     #    V2CartridgeModel.new(...).connector_execute(cartridge_name, connector, args)
     #
-    def connector_execute(cart_name, connector, args)
+    def connector_execute(cart_name, pub_cart_name, connection_type, connector, args)
       cartridge = get_cartridge(cart_name)
       env       = Utils::Environ.for_gear(@user.homedir, File.join(@user.homedir, cartridge.directory))
+      logger.debug("CONNECTION_TYPE: #{connection_type}")
+
+      # Special treatment for env var connection hooks
+      if connection_type.start_with?("ENV:") && pub_cart_name
+        set_connection_hook_env_vars(cart_name, pub_cart_name, args)
+        return "Set environment variables correctly"
+      end
 
       script = PathUtils.join(@user.homedir, cartridge.directory, 'hooks', connector)
 
