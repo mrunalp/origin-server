@@ -812,6 +812,13 @@ module OpenShift
       do_control_with_directory(action, options)
     end
 
+    # Let a cart perform some action when another cart is being removed
+    # Today, it is used to cleanup environment variables
+    def unsubscribe(cart_name, pub_cart_name)
+      env_dir_path = File.join(@user.homedir, '.env', pub_cart_name)
+      FileUtils.rm_rf(env_dir_path)
+    end
+
     def set_connection_hook_env_vars(cart_name, pub_cart_name, args)
       logger.info("Setting env vars for #{cart_name} from #{pub_cart_name}")
       logger.info("ARGS: #{args.inspect}")
