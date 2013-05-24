@@ -111,4 +111,5 @@ Version-Overrides:
        - components:
          - python-3.3
          - web_proxy
+     Install-Build-Required: true
 Install-Build-Required: false
