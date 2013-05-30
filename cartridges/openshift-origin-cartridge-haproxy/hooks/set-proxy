@@ -107,9 +107,10 @@ local_ep=$local_ip:$local_port
 
 # Disable/enable local endpoint based on number of serving gears.
 if [ $(grep -E "server\s*gear" /tmp/haproxy.cfg.$$ | wc -l) -ge 2 ]; then
+    true
     # disable local-gear serving with weight 0.
-    sed -i "/\s*server\s*local-gear\s.*/d" /tmp/haproxy.cfg.$$
-    echo "    server local-gear $local_ep weight 0" >> /tmp/haproxy.cfg.$$
+    # sed -i "/\s*server\s*local-gear\s.*/d" /tmp/haproxy.cfg.$$
+    # echo "    server local-gear $local_ep weight 0" >> /tmp/haproxy.cfg.$$
 else
     # re-add local-gear with maxconn 2.
     sed -i "/\s*server\s*local-gear\s.*/d" /tmp/haproxy.cfg.$$
