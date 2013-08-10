@@ -3,6 +3,7 @@
 require 'socket'
 require 'logger'
 require 'getoptlong'
+require 'net/http'
 
 @check_interval=3
 
@@ -11,6 +12,7 @@ HAPROXY_CONF_DIR=File.join(ENV['OPENSHIFT_HAPROXY_DIR'], "conf")
 HAPROXY_RUN_DIR=File.join(ENV['OPENSHIFT_HAPROXY_DIR'], "run")
 GEAR_REGISTRY_DB=File.join(HAPROXY_CONF_DIR, "gear-registry.db")
 HAPROXY_CONFIG=File.join(HAPROXY_CONF_DIR, "haproxy.cfg")
+HAPROXY_STATUS_URLS_CONFIG=File.join(HAPROXY_CONF_DIR, "app_haproxy_status_urls.conf")
 
 class HAProxyAttr
     attr_accessor :pxname,:svname,:qcur,:qmax,:scur,:smax,:slim,:stot,:bin,:bout,:dreq,:dresp,:ereq,:econ,:eresp,:wretr,:wredis,:status,:weight,:act,:bck,:chkfail,:chkremove,:lastchg,:removetime,:qlimit,:pid,:iid,:sid,:throttle,:lbtot,:tracked,:type,:rate,:rate_lim,:rate_max,:check_status,:check_code,:check_duration,:hrsp_1xx,:hrsp_2xx,:hrsp_3xx,:hrsp_4xx,:hrsp_5xx,:hrsp_other,:hanafail,:req_rate,:req_rate_max,:req_tot,:cli_abrt,:srv_abrt
@@ -108,15 +110,44 @@ class Haproxy
       end
     end
 
+    def populate_status_urls
+      if File.exist?(HAPROXY_STATUS_URLS_CONFIG)
+        begin
+          File.open(HAPROXY_STATUS_URLS_CONFIG, "r").each_line do |surl|
+            @status_urls << surl.strip
+          end
+        rescue => ex
+          @@log.error(ex.backtrace)
+        end
+      end
+    end
+
     def initialize(stats_sock="#{HAPROXY_RUN_DIR}/stats")
         @stats_sock=stats_sock
         @last_scale_up_time=Time.now
         @flap_protection_time_seconds = 120 # number of seconds to ignore gear remove events since last up event
         @remove_count_threshold = 20
         @remove_count = 0
+        @status_urls = []
+        self.populate_status_urls
         self.refresh
         @log.info("Starting haproxy_ctld")
         self.print_gear_stats
+    end
+
+    def get_remote_sessions_count(status_url)
+      status_uri = status_url + ";csv"
+      output = Net::HTTP.get(URI(status_uri))
+
+      status = {}
+      output.split("\n")[1..-1].each do |line|
+        pxname = line.split(',')[0]
+        svname = line.split(',')[1]
+        status[pxname] = {} unless status[pxname]
+        status[pxname][svname] = HAProxyAttr.new(line)
+      end
+
+      num_sessions = status['express']['BACKEND'].scur.to_i
     end
 
     def refresh(stats_sock="#{HAPROXY_RUN_DIR}/stats")
@@ -155,9 +186,12 @@ class Haproxy
           raise ShouldRetry, "Failed to get information from haproxy"
         end
 
-        @sessions_per_gear = @sessions.to_f / @gear_count
-        @session_capacity_pct = (@sessions_per_gear / MAX_SESSIONS_PER_GEAR ) * 100
+        @status_urls.each do |surl|
+          @sessions += get_remote_sessions_count(surl)
+        end
 
+        @sessions_per_gear = @sessions.to_f / @gear_count * (@status_urls.length + 1)
+        @session_capacity_pct = (@sessions_per_gear / MAX_SESSIONS_PER_GEAR ) * 100
     end
 
     def gear_namespace()
