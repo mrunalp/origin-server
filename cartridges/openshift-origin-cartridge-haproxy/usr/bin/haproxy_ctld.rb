@@ -111,6 +111,7 @@ class Haproxy
     end
 
     def populate_status_urls
+      @status_urls = []
       if File.exist?(HAPROXY_STATUS_URLS_CONFIG)
         begin
           File.open(HAPROXY_STATUS_URLS_CONFIG, "r").each_line do |surl|
@@ -128,7 +129,6 @@ class Haproxy
         @flap_protection_time_seconds = 120 # number of seconds to ignore gear remove events since last up event
         @remove_count_threshold = 20
         @remove_count = 0
-        @status_urls = []
         self.populate_status_urls
         self.refresh
         @log.info("Starting haproxy_ctld")
@@ -136,18 +136,25 @@ class Haproxy
     end
 
     def get_remote_sessions_count(status_url)
+      @log.debug("Getting stats from #{status_url}")
       status_uri = status_url + ";csv"
-      output = Net::HTTP.get(URI(status_uri))
+      begin
+        output = Net::HTTP.get(URI(status_uri))
 
-      status = {}
-      output.split("\n")[1..-1].each do |line|
-        pxname = line.split(',')[0]
-        svname = line.split(',')[1]
-        status[pxname] = {} unless status[pxname]
-        status[pxname][svname] = HAProxyAttr.new(line)
+        status = {}
+        output.split("\n")[1..-1].each do |line|
+          pxname = line.split(',')[0]
+          svname = line.split(',')[1]
+          status[pxname] = {} unless status[pxname]
+          status[pxname][svname] = HAProxyAttr.new(line)
+        end
+
+        num_sessions = status['express']['BACKEND'].scur.to_i
+      rescue => ex
+        @log.info("Failed to get stats from #{status_url}")
+        @log.info(ex.backtrace)
+        -1
       end
-
-      num_sessions = status['express']['BACKEND'].scur.to_i
     end
 
     def refresh(stats_sock="#{HAPROXY_RUN_DIR}/stats")
@@ -186,11 +193,17 @@ class Haproxy
           raise ShouldRetry, "Failed to get information from haproxy"
         end
 
+        num_remote_proxies = 0
         @status_urls.each do |surl|
-          @sessions += get_remote_sessions_count(surl)
+          num_sessions = get_remote_sessions_count(surl)
+          if num_sessions >= 0
+            @sessions += num_sessions
+            num_remote_proxies += 1
+          end
         end
 
-        @sessions_per_gear = @sessions.to_f / @gear_count * (@status_urls.length + 1)
+        @log.debug("Got stats from #{num_remote_proxies} remote proxies.")
+        @sessions_per_gear = @sessions.to_f / @gear_count * (num_remote_proxies + 1)
         @session_capacity_pct = (@sessions_per_gear / MAX_SESSIONS_PER_GEAR ) * 100
     end
 
@@ -242,6 +255,7 @@ class Haproxy
         res=`#{ENV['OPENSHIFT_HAPROXY_DIR']}/usr/bin/remove-gear -n #{self.gear_namespace} -a #{ENV['OPENSHIFT_APP_NAME']} -u #{ENV['OPENSHIFT_GEAR_UUID']} 2>&1`
         @log.debug("GEAR_DOWN - remove-gear: exit: #{$?}  stdout: #{res}")
         $stderr.puts(res) if verbose and res != ""
+        self.populate_status_urls
         self.print_gear_stats
     end
 
