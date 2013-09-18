@@ -143,10 +143,11 @@ function removeproxies() {
     done
 }
 
-# Display the mapping for the specified proxy port.
-function showproxy() {
-    proxyport=$1
-    grep -m 1 "dport ${proxyport}" $nat_rules_file | awk '{print $14}'
+# Display the mapping for the specified proxy ports.
+function showproxies() {
+    for proxyport in "$@"; do
+        grep -m 1 "dport ${proxyport}" $nat_rules_file | awk "{print \"$proxyport\" \" \" \$14}"
+    done
 }
 
 case "$1" in
@@ -157,7 +158,8 @@ case "$1" in
         shift
         lockwrap removeproxies "$@";;
     showproxy)
-        lockwrap showproxy "$@";;
+        shift
+        lockwrap showproxies "$@";;
     *)
         help
         exit 2
