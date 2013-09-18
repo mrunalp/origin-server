@@ -1,0 +1,140 @@
+#!/bin/bash -e
+
+source /etc/openshift/node.conf
+nat_rules_file=/etc/openshift/iptables.nat.rules
+filter_rules_file=/etc/openshift/iptables.filter.rules
+lock_file=/etc/openshift/iptables.rules.lock
+
+function help() {
+    echo "Usage: $0 addproxy|removeproxy|showproxies"
+}
+
+function getaddr() {
+    # External due to using DNS for gear->gear
+    ip -4 addr show dev ${EXTERNAL_ETH_DEV:-eth0} scope global | sed -r -n '/inet/ { s/^.*inet ([0-9\.]+).*/\1/; p }' | head -1
+}
+
+function atomic_cfg() {
+    cfgfile=$1
+    shift
+    cfg_old="${cfgfile}"
+    cfgfile="${cfgfile}.editing"
+
+    rm -f "${cfgfile}"
+    cp -a -f "${cfg_old}" "${cfgfile}"
+
+    "$@" "${cfgfile}"
+
+    rm -f "${cfg_old}.bak"
+    ln -f "${cfg_old}" "${cfg_old}.bak"
+    mv -f "${cfgfile}" "${cfg_old}"
+}
+
+function atomic_filter_config() {
+    atomic_cfg $filter_rules_file "$@"
+}
+
+function atomic_nat_config() {
+    atomic_cfg $nat_rules_file "$@"
+}
+
+function addproxy() {
+    proxyport="$1"
+    target="$2"
+
+    if ! [ "$proxyport" -ge 16384 -a "$proxyport" -le 65535 ]; then
+        echo "Proxy port must be an integer between 16384 and 65535"
+        return 1
+    fi
+
+    bip=$(echo "$target" | cut -f 1 -d :)
+    ipbytes=( $(echo "$bip" | sed -e 's/\./ /g') )
+    if [ ${#ipbytes[@]} -ne 4 ]; then
+        echo "Dest addr must be a valid IPv4 address."
+        return 1
+    fi
+
+    for byt in "${ipbytes[@]}"; do
+        if ! [ "$byt" -ge 0 -a "$byt" -le 255 ]; then
+            echo "Dest addr must be a valid IP address."
+            return 1
+        fi
+    done
+
+    port=$(echo $target | cut -f 2 -d :)
+    if ! [ "$port" -ge 1 -a "$port" -le 65535 ]; then
+        echo "Dest port must be an integer between 16384 and 65535"
+        return 1
+    fi
+
+    baddr=$(getaddr)
+
+    if ! grep -q "comment ${proxyport}" $filter_rules_file; then
+        filter_rule="-I OUTPUT 3 -d ${bip} -p tcp --dport ${port} -j ACCEPT -m comment --comment ${proxyport}"
+        echo $filter_rule
+        iptables -t filter $filter_rule
+        atomic_filter_config sed -i "s#COMMIT#${filter_rule}\nCOMMIT#g"
+    fi
+    if ! grep -q "dport ${proxyport}" $nat_rules_file; then
+        nat_output_rule="-A OUTPUT -d ${baddr}/32 -m tcp -p tcp --dport ${proxyport} -j DNAT --to-destination ${target}"
+        nat_pre_rule="-A PREROUTING -d ${baddr}/32 -m tcp -p tcp --dport ${proxyport} -j DNAT --to-destination ${target}"
+        echo $nat_output_rule
+        iptables -t nat $nat_output_rule
+        echo $nat_pre_rule
+        iptables -t nat $nat_pre_rule
+        atomic_nat_config sed -i "s#COMMIT#${nat_output_rule}\n${nat_pre_rule}\nCOMMIT#g"
+    fi
+}
+
+function addproxies() {
+    while [ "$1" ]; do
+        addproxy "$1" "$2"
+        shift; shift
+    done
+}
+
+function removeproxy() {
+    proxyport=$1
+    
+    # Remove the filter rules
+    grep "comment ${proxyport}" $filter_rules_file | while read line; do
+        cmd=$(echo $line | sed 's/-I/-D/' | sed 's/OUTPUT 3/OUTPUT/')
+        echo $cmd
+        iptables $cmd
+    done
+    atomic_filter_config sed -i "/--comment\s${proxyport}/d"
+
+    # Remove the nat rules
+    grep "dport ${proxyport}" $nat_rules_file | while read line; do
+        cmd=$(echo $line | sed 's/-A/-D/')
+        echo $cmd
+        iptables -t nat $cmd
+    done
+    atomic_nat_config sed -i "/--dport\s${proxyport}/d"
+}
+
+function removeproxies() {
+    for proxyport in "$@"; do
+        removeproxy ${proxyport}
+    done
+}
+
+function showproxy() {
+    proxyport=$1
+    grep -m 1 "dport ${proxyport}" $nat_rules_file | awk '{print $14}'
+}
+
+case "$1" in
+    addproxy)
+        shift
+        addproxies "$@";;
+    removeproxy)
+        shift
+        removeproxies "$@";;
+    showproxy)
+        showproxy "$@";;
+    *)
+        help
+        exit 2
+        ;;
+esac
