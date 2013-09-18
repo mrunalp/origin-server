@@ -14,6 +14,8 @@ function getaddr() {
     ip -4 addr show dev ${EXTERNAL_ETH_DEV:-eth0} scope global | sed -r -n '/inet/ { s/^.*inet ([0-9\.]+).*/\1/; p }' | head -1
 }
 
+# Make atomic updates to the specified config file.
+# E.g. atomic_cfg config_file_path sed -i 's/A/B/'
 function atomic_cfg() {
     cfgfile=$1
     shift
@@ -30,18 +32,31 @@ function atomic_cfg() {
     mv -f "${cfgfile}" "${cfg_old}"
 }
 
+# Helper function for atomically updating the filter rules file.
 function atomic_filter_config() {
     atomic_cfg $filter_rules_file "$@"
 }
 
+# Helper function for atomically updating the nat rules file.
 function atomic_nat_config() {
     atomic_cfg $nat_rules_file "$@"
 }
 
+# Synchronize code execution with a file lock.
+function lockwrap() {
+    (
+    flock 200
+    "$@"
+    ) 200>${lock_file}
+}
+
+# Add entry for a new proxy mapping.
+# addproxy 23456 127.0.0.1:8080
 function addproxy() {
     proxyport="$1"
     target="$2"
 
+    # Validate input
     if ! [ "$proxyport" -ge 16384 -a "$proxyport" -le 65535 ]; then
         echo "Proxy port must be an integer between 16384 and 65535"
         return 1
@@ -69,12 +84,15 @@ function addproxy() {
 
     baddr=$(getaddr)
 
+    # Add the iptables filter rule.
     if ! grep -q "comment ${proxyport}" $filter_rules_file; then
         filter_rule="-I OUTPUT 3 -d ${bip} -p tcp --dport ${port} -j ACCEPT -m comment --comment ${proxyport}"
         echo $filter_rule
         iptables -t filter $filter_rule
         atomic_filter_config sed -i "s#COMMIT#${filter_rule}\nCOMMIT#g"
     fi
+ 
+    # Add the iptables nat rule.
     if ! grep -q "dport ${proxyport}" $nat_rules_file; then
         nat_output_rule="-A OUTPUT -d ${baddr}/32 -m tcp -p tcp --dport ${proxyport} -j DNAT --to-destination ${target}"
         nat_pre_rule="-A PREROUTING -d ${baddr}/32 -m tcp -p tcp --dport ${proxyport} -j DNAT --to-destination ${target}"
@@ -86,6 +104,8 @@ function addproxy() {
     fi
 }
 
+# Support adding multiple proxy mappings at the same time.
+# addproxy 23456 127.0.0.1:8080 34535 127.0.0.129:8080 [proxyport backendip:port]
 function addproxies() {
     while [ "$1" ]; do
         addproxy "$1" "$2"
@@ -93,6 +113,8 @@ function addproxies() {
     done
 }
 
+# Remove the proxy mapping for the specified proxy port.
+# removeproxy 38032
 function removeproxy() {
     proxyport=$1
     
@@ -113,12 +135,15 @@ function removeproxy() {
     atomic_nat_config sed -i "/--dport\s${proxyport}/d"
 }
 
+# Support removing multiple proxy port mappings at the same time.
+# removeproxies 38935 35355 [proxyport]
 function removeproxies() {
     for proxyport in "$@"; do
         removeproxy ${proxyport}
     done
 }
 
+# Display the mapping for the specified proxy port.
 function showproxy() {
     proxyport=$1
     grep -m 1 "dport ${proxyport}" $nat_rules_file | awk '{print $14}'
@@ -127,12 +152,12 @@ function showproxy() {
 case "$1" in
     addproxy)
         shift
-        addproxies "$@";;
+        lockwrap addproxies "$@";;
     removeproxy)
         shift
-        removeproxies "$@";;
+        lockwrap removeproxies "$@";;
     showproxy)
-        showproxy "$@";;
+        lockwrap showproxy "$@";;
     *)
         help
         exit 2
