@@ -14,6 +14,17 @@ function getaddr() {
     ip -4 addr show dev ${EXTERNAL_ETH_DEV:-eth0} scope global | sed -r -n '/inet/ { s/^.*inet ([0-9\.]+).*/\1/; p }' | head -1
 }
 
+# Fix up the IP Address in the config if the assigned node IP Address has changed.
+function fixaddr() {
+    cfg_addr=$(tail -n 2 $nat_rules_file | head -n 1 | awk '{ print $4 }')
+    baddr=$(getaddr)
+    echo $baddr
+    echo $cfg_addr
+    if [ "${cfg_addr}" != "${baddr}/32" ]; then
+        atomic_nat_config sed -i "s#${cfg_addr}#${baddr}/32#g"
+    fi
+}
+
 # Make atomic updates to the specified config file.
 # E.g. atomic_cfg config_file_path sed -i 's/A/B/'
 function atomic_cfg() {
@@ -160,6 +171,9 @@ case "$1" in
     showproxy)
         shift
         lockwrap showproxies "$@";;
+    fixaddr)
+        shift
+        lockwrap fixaddr;;
     *)
         help
         exit 2
