@@ -97,7 +97,7 @@ function addproxy() {
 
     # Add the iptables filter rule.
     if ! grep -q "comment ${proxyport}" $filter_rules_file; then
-        filter_rule="-I rhc-gear-comm 1 -d ${bip} -p tcp --dport ${port} -j ACCEPT -m comment --comment ${proxyport}"
+        filter_rule="-I rhc-app-comm 1 -d ${bip} -p tcp --dport ${port} -j ACCEPT -m comment --comment ${proxyport}"
         echo $filter_rule
         iptables -t filter $filter_rule
         atomic_filter_config sed -i "s#COMMIT#${filter_rule}\nCOMMIT#g"
@@ -131,7 +131,7 @@ function removeproxy() {
     
     # Remove the filter rules
     grep "comment ${proxyport}" $filter_rules_file | while read line; do
-        cmd=$(echo $line | sed 's/-I/-D/' | sed 's/rhc-gear-comm 1/rhc-gear-comm/')
+        cmd=$(echo $line | sed 's/-I/-D/' | sed 's/rhc-app-comm 1/rhc-app-comm/')
         echo $cmd
         iptables $cmd
     done
