@@ -97,10 +97,13 @@ function addproxy() {
 
     # Add the iptables filter rule.
     if ! grep -q "comment ${proxyport}" $filter_rules_file; then
-        filter_rule="-I rhc-app-comm 1 -d ${bip} -p tcp --dport ${port} -j ACCEPT -m comment --comment ${proxyport}"
-        echo $filter_rule
-        iptables -t filter $filter_rule
-        atomic_filter_config sed -i "s#COMMIT#${filter_rule}\nCOMMIT#g"
+        filter_output_rule="-I rhc-app-comm 1 -d ${bip} -p tcp --dport ${port} -j ACCEPT -m comment --comment ${proxyport}"
+        filter_input_rule="-I rhc-app-comm 1 -d ${bip} -m conntrack --ctstate NEW -m tcp -p tcp --dport ${port} -j ACCEPT -m comment --comment ${proxyport}"
+        echo $filter_output_rule
+        iptables -t filter $filter_output_rule
+        echo $filter_input_rule
+        iptables -t filter $filter_input_rule
+        atomic_filter_config sed -i "s#COMMIT#${filter_output_rule}\n${filter_input_rule}\nCOMMIT#g"
     fi
  
     # Add the iptables nat rule.
