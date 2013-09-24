@@ -103,7 +103,7 @@ function addproxy() {
         iptables -t filter $filter_output_rule
         echo $filter_input_rule
         iptables -t filter $filter_input_rule
-        atomic_filter_config sed -i "s#COMMIT#${filter_output_rule}\n${filter_input_rule}\nCOMMIT#g"
+        atomic_filter_config sed -i "s/#COMMIT/${filter_output_rule}\n${filter_input_rule}\n#COMMIT/g"
     fi
  
     # Add the iptables nat rule.
@@ -114,7 +114,7 @@ function addproxy() {
         iptables -t nat $nat_output_rule
         echo $nat_pre_rule
         iptables -t nat $nat_pre_rule
-        atomic_nat_config sed -i "s#COMMIT#${nat_output_rule}\n${nat_pre_rule}\nCOMMIT#g"
+        atomic_nat_config sed -i "s&#COMMIT&${nat_output_rule}\n${nat_pre_rule}\n#COMMIT&g"
     fi
 }
 
