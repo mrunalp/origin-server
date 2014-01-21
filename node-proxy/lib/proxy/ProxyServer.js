@@ -243,88 +243,9 @@ function finish_request (reqhost, reqport, proxy_server, req, res, io_timeout, k
   _setProxyRequestHeaders(proxy_req, req);
 
   var preq = http.request(proxy_req, function(pres) {
-    /*  Set surrogate's backend information.  */
-    surrogate.setBackendInfo(preq, pres);
-
-    /*  Response started event.  */
-    surrogate.emit('begin-response');
-
-    /*  Handle the proxy response error/end/data events.  */
-    pres.addListener('error', function() {
-      /*  Finish the response to the originating request and emit event.  */
-      res.end();
-      surrogate.emit('error', 'proxy.response.error');
-    });
-
-    pres.addListener('end', function() {
-      /*  Finish the response to the originating request and emit event.  */
-      res.end();
-      surrogate.emit('end');
-    });
-
-    pres.addListener('data', function(chunk) {
-      /*  Emit event and proxy response to the request originator.  */
-      surrogate.emit('outbound.data', chunk);
-      res.write(chunk);
-    });
-
-    /*  Set the appropriate headers on the reponse & send the headers.  */
-    _setProxyResponseHeaders(pres, reqhost, keep_alive_timeout);
-    res.writeHead(pres.statusCode, pres.headers);
+    pres.pipe(res);
   });
-
-  /*  Handle the outgoing request socket event and set a timeout.  */
-  preq.on('socket', function(socket) {
-    socket.setTimeout(io_timeout * 1000);  /*  Timeout is in ms.  */
-    socket.on('timeout', function() {
-      /*  Abort the request and emit timeout event.  */
-      preq.abort();
-      surrogate.emit('error', 'socket.timeout');
-    });
-  });
-
-
-  /*  Handle the incoming request error/end/data events.  */
-  req.addListener('error', function() {
-    /*  Finish the proxied request, return a 503.  */
-    preq.abort();
-    res.statusCode = statuscodes.HTTP_SERVICE_UNAVAILABLE;
-    res.write(errorpages.service_unavailable_page(reqhost, reqport) );
-    res.end();
-
-    /*  Emit error event.  */
-    surrogate.emit('error', 'request.error');
-  });
-
-  req.addListener('end', function() {
-    /*  Finish outgoing request to the backend content server & emit event.  */
-    preq.end();
-    surrogate.emit('end-request');
-  });
-
-  req.addListener('data', function(chunk) {
-    /*  Emit event and proxy data to the backend content server.  */
-    surrogate.emit('inbound.data', chunk);
-    preq.write(chunk);
-  });
-
-
-  /*  Handle the outgoing request error event.  */
-  preq.addListener('error', function(error) {
-    Logger.error('io_timeout: ' + io_timeout)
-    Logger.error('Error listener on proxied request: ' + error.stack)
-
-    /*  Finish the incoming request, return a 503 and emit event.  */
-    res.statusCode = statuscodes.HTTP_SERVICE_UNAVAILABLE;
-    res.write(errorpages.service_unavailable_page(reqhost, reqport) );
-    res.end('');
-    surrogate.emit('error', 'proxy.request.error');
-  });
-
-  res.addListener('close', function() {
-    Logger.debug("Client closed the connection");
-    preq.abort();
-  });
+  req.pipe(preq);
 }
 
 /**
@@ -432,7 +353,6 @@ function finish_websocket(upg_reqhost, proxy_server, ws) {
 
     return;
   }
-
 
   var ws_endpoint = routes[0];
 
