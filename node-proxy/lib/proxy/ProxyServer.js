@@ -216,11 +216,14 @@ function finish_request (reqhost, reqport, proxy_server, req, res, io_timeout, k
 
 
   /*  Get the routes to the destination (try with request URI first).  */
-  var routes = proxy_server.getRoute(reqhost + request_uri);
+  var routes = proxy_server.getRoute(reqhost, request_uri);
+  /*
   if (routes.length < 1) {
-    /*  No specific route, try the more general route.  */
+    //  No specific route, try the more general route. 
     routes = proxy_server.getRoute(reqhost);
   }
+ */
+  Logger.debug("ROUTES: " + routes);
 
   /*  No route, no milk [, no cookies] ... return a temporary redirect.  */
   if (!routes  ||  (routes.length < 1)  ||  (routes[0].length < 1) ) {
@@ -237,7 +240,7 @@ function finish_request (reqhost, reqport, proxy_server, req, res, io_timeout, k
   /*  Get the endpoint we need to send this request to.  */
   var ep = routes[0].split(':');
   var ep_host = ep[0];
-  var ep_port = ep[1] || 8080;
+  var ep_port = ep[1].split('/')[0] || 8080;
 
   proxy_server.debug()  &&  Logger.debug('Sending a proxy request to %s', ep);
 
@@ -246,6 +249,7 @@ function finish_request (reqhost, reqport, proxy_server, req, res, io_timeout, k
     method: req.method, path: request_uri,
     headers: req.headers
   };
+  Logger.debug(util.format(proxy_req));
   _setProxyRequestHeaders(proxy_req, req);
 
   var preq = http.request(proxy_req, function(pres) {
@@ -421,11 +425,13 @@ function finish_websocket(upg_reqhost, proxy_server, ws) {
   var upg_requri = upgrade_req.url ? upgrade_req.url : '/';
 
   /*  Get the routes to the destination (try with request URI first).  */
-  var routes = proxy_server.getRoute(upg_reqhost + upg_requri);
+  var routes = proxy_server.getRoute(upg_reqhost, upg_requri);
+  /*
   if (routes.length < 1) {
-    /*  No specific route, try the more general route.  */
+    /*  No specific route, try the more general route.
     routes = proxy_server.getRoute(upg_reqhost);
   }
+  */
 
   /*  No route, no milk [, no cookies] ... return unexpected condition.  */
   if (!routes  ||  (routes.length < 1)  ||  (routes[0].length < 1) ) {
@@ -803,9 +809,25 @@ ProxyServer.prototype.debug = function(d) {
  *  @return  {Array}   Associated endpoints/routes.
  *  @api     public
  */
-ProxyServer.prototype.getRoute = function(dest) {
-  return((this.routes)? this.routes.get(dest) : [ ]);
+ProxyServer.prototype.getRoute = function(host, path) {
+  var path_segments = path.split('/');
+  var max_segs = path_segments.length > 3? path_segments.length : 3;
 
+  if (!this.routes)
+    return this.routes;
+
+  for (i = max_segs; i > 0; i--) {
+    full_path = host + path_segments.slice(0, i).join('/');
+    Logger.debug("FULL PATH: " + full_path);
+    dest = this.routes.get(full_path);
+    Logger.debug("DEST: " + util.inspect(dest));
+    if (dest.length > 0) {
+      Logger.debug("Returning: " + dest);
+      return dest;
+    }
+  }
+
+  return [ ];
 };  /*  End of function  getRoute.  */
 
 
