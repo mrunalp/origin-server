@@ -223,7 +223,6 @@ function finish_request (reqhost, reqport, proxy_server, req, res, io_timeout, k
     routes = proxy_server.getRoute(reqhost);
   }
  */
-  Logger.debug("ROUTES: " + routes);
 
   /*  No route, no milk [, no cookies] ... return a temporary redirect.  */
   if (!routes  ||  (routes.length < 1)  ||  (routes[0].length < 1) ) {
@@ -238,15 +237,33 @@ function finish_request (reqhost, reqport, proxy_server, req, res, io_timeout, k
   }
 
   /*  Get the endpoint we need to send this request to.  */
+  Logger.debug("routes: " + util.inspect(routes));
   var ep = routes[0].split(':');
+  Logger.debug("EP: " + util.inspect(ep));
+  var matched_path = ep[2];
+  Logger.debug("MP: " + util.inspect(matched_path));
   var ep_host = ep[0];
-  var ep_port = ep[1].split('/')[0] || 8080;
+  Logger.debug("Host: " + util.inspect(ep_host));
+  var parts = ep[1].split('/');
+  Logger.debug("Parts: " + util.inspect(parts));
+  var ep_port = parts[0] || 8080;
+  Logger.debug("Port: " + util.inspect(ep_port));
+  var req_path = request_uri;
+  var ep_path = undefined;
+  if (parts.length > 1) {
+    ep_path = '/' + parts.slice(1).join('/');
+    Logger.debug("ep_path: " + util.inspect(ep_path));
+    Logger.debug("req_path: " + util.inspect(req_path));
+    req_path = req_path.replace(matched_path, ep_path);
+  }
+
+  Logger.debug("REQ PATH: " + req_path);
 
   proxy_server.debug()  &&  Logger.debug('Sending a proxy request to %s', ep);
 
   /*  Create a proxy request we need to send & set appropriate headers.  */
   var proxy_req = { host: ep_host, port: ep_port,
-    method: req.method, path: request_uri,
+    method: req.method, path: req_path,
     headers: req.headers
   };
   Logger.debug(util.format(proxy_req));
@@ -817,13 +834,16 @@ ProxyServer.prototype.getRoute = function(host, path) {
     return this.routes;
 
   for (i = max_segs; i > 0; i--) {
-    full_path = host + path_segments.slice(0, i).join('/');
+    candidate_path = path_segments.slice(0, i).join('/');
+    full_path = host + candidate_path;
     Logger.debug("FULL PATH: " + full_path);
     dest = this.routes.get(full_path);
     Logger.debug("DEST: " + util.inspect(dest));
     if (dest.length > 0) {
-      Logger.debug("Returning: " + dest);
-      return dest;
+      dret = [];
+      for (idx in dest) { dret.push(dest[idx] + ":" + candidate_path); }
+      Logger.debug("Returning: " + dret);
+      return dret;
     }
   }
 
