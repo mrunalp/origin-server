@@ -463,7 +463,10 @@ function finish_websocket(upg_reqhost, proxy_server, ws) {
   }
 
 
-  var ws_endpoint = routes[0];
+  /* Take out the matched endpoint from the result */
+  var ws_endpoint = routes[0].split(":").slice(0, 2).join(":");
+  var req_path = routes[0].split(":")[1];
+  Logger.debug("WS EP:" + util.inspect(ws_endpoint));
 
   proxy_server.debug()  &&  Logger.debug('Sending a websocket request to %s',
                                          ws_endpoint);
@@ -484,7 +487,7 @@ function finish_websocket(upg_reqhost, proxy_server, ws) {
   }
 
   /*  Create a proxy websocket request we need to send.  */
-  var proxy_ws = new WebSocket('ws://' + ws_endpoint + upg_requri, zheaders);
+  var proxy_ws = new WebSocket('ws://' + ws_endpoint, zheaders);
 
   /*  Set surrogate's backend information.  */
   surrogate.setBackendInfo(proxy_ws);
