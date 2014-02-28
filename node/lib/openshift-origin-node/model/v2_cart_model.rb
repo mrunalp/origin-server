@@ -105,6 +105,14 @@ module OpenShift
       end
 
       ##
+      # Returns true if the primary +Cartridge+ is also the +web_proxy+.
+      # This occurs in the case of applications that have Windows web cartridges.
+      # TODO: vladi (uhuru): verify that these changes are OK
+      def solo_web_proxy?
+        (web_proxy != nil) and (web_proxy.name == primary_cartridge.name)
+      end
+
+      ##
       # Detects and returns a builder +Cartridge+ in the gear if present, otherwise +nil+.
       def builder_cartridge
         builder_cart = nil
@@ -284,7 +292,8 @@ module OpenShift
                         "Cartridge created the following directories in the gear home directory: #{illegal_entries.join(', ')}")
             end
 
-            output << populate_gear_repo(c.directory, template_git_url) if cartridge.deployable?
+            # TODO: vladi (uhuru): Verify that this change is OK.
+            output << populate_gear_repo(c.directory, template_git_url) if cartridge.deployable? or (solo_web_proxy? and template_git_url)
           end
 
           validate_cartridge(cartridge)
@@ -1195,7 +1204,8 @@ module OpenShift
         env_var_hook = connection_type.start_with?("ENV:") && pub_cart_name
 
         # Special treatment for env var connection hooks
-        if env_var_hook
+        # TODO: vladi (uhuru): make sure this is ok for the web proxy cart
+        if env_var_hook and (web_proxy == nil or solo_web_proxy?)
           set_connection_hook_env_vars(cart_name, pub_cart_name, args)
           args = convert_to_shell_arguments(args)
         end

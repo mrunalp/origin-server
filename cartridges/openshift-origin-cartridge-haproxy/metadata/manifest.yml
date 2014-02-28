@@ -26,6 +26,9 @@ Provides:
 Components:
   web_proxy:
     Publishes:
+      # TODO: vladi (uhuru): make sure this is ok for the web proxy cart
+      set-env:
+        Type: ENV:NET_TCP:db:connection-info
       get-balancer-connection-info:
         Type: NET_TCP:http:http
       publish-haproxy-status-url:

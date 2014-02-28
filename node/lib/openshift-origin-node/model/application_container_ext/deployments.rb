@@ -224,7 +224,9 @@ module OpenShift
         end
 
         def sync_files(from, to)
-          out, err, rc = run_in_container_context("/usr/bin/rsync -av --delete #{from}/ #{to}/",
+          # TODO: vladi (uhuru): Make sure adding the O option is not a problem
+          rsync_options = @cartridge_model.solo_web_proxy? ? '-rltgoDOv' : '-av'
+          out, err, rc = run_in_container_context("/usr/bin/rsync #{rsync_options} --delete #{from}/ #{to}/",
                                                   expected_exitstatus: 0)
         end
 
