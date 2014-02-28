@@ -8,7 +8,34 @@ PATH = "#{ENV['OPENSHIFT_BROKER_DIR'] || '/var/www/openshift/broker'}/config/env
 class Command
   def import_node(options)
     env!(options)
-    carts = OpenShift::ApplicationContainerProxy.send(options.node ? :instance : :find_one, *[options.node].compact).get_available_cartridges
+
+    # TODO: vladi (uhuru): modify method so it uses the broker conf list of available platforms
+
+    if options.node
+      carts = OpenShift::ApplicationContainerProxy.instance(options.node)
+    else
+      carts_linux = []
+      carts_windows = []
+
+      linux_found = true
+
+      begin
+        carts_linux = OpenShift::ApplicationContainerProxy.find_one(nil, 'Linux').get_available_cartridges
+      rescue OpenShift::NodeUnavailableException
+        linux_found = false
+      end
+
+      begin
+        carts_windows = OpenShift::ApplicationContainerProxy.find_one(nil, 'Windows').get_available_cartridges
+      rescue OpenShift::NodeUnavailableException => e
+        unless linux_found
+          raise e
+        end
+      end
+
+      carts = carts_linux + carts_windows
+    end
+
     types = CartridgeType.update_from(carts, nil, options.force)
     update_types(options, types)
   rescue OpenShift::NodeException

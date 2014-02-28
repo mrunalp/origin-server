@@ -2,6 +2,8 @@ class InitGearOp < PendingAppOp
 
   field :gear_id, type: String
   field :group_instance_id, type: String
+  # TODO: vladi (uhuru): modify method so it uses a platform property, not kernel
+  field :kernel, type: String
   field :host_singletons, type: Boolean, default: false
   field :app_dns, type: Boolean, default: false
 
@@ -21,7 +23,8 @@ class InitGearOp < PendingAppOp
         begin
           get_group_instance
         rescue Mongoid::Errors::DocumentNotFound
-          application.group_instances << GroupInstance.new(custom_id: group_instance_id, addtl_fs_gb: addtl_fs_gb, gear_size: gear_size)
+          # TODO: vladi (uhuru): modify method so it uses a platform property, not kernel
+          application.group_instances << GroupInstance.new(custom_id: group_instance_id, addtl_fs_gb: addtl_fs_gb, gear_size: gear_size, custom_kernel: kernel)
           get_group_instance
         end
 

@@ -526,7 +526,7 @@ class Application
 
     # Overrides that are implicit to applications of this type
     if self.scalable
-      if self.ha
+      if self.ha && !is_windows_app
         overrides.concat(implicit_available_overrides(specs))
       end
     else
@@ -698,6 +698,12 @@ class Application
             ((ssl_endpoint == "force") and not cart_req_ssl_endpoint))
           raise OpenShift::UserException.new("Invalid cartridge '#{cart.name}' conflicts with platform SSL_ENDPOINT setting.", 109, "cartridge")
         end
+      end
+
+      # Validate that we are not trying to create a non-scalable Windows app
+      # TODO: vladi (uhuru): make sure this change is OK
+      if cart.categories.include?('windows') && !self.scalable
+        raise OpenShift::UserException.new("Windows applications must be scalable.", 109)
       end
 
       # Validate that the cartridges support scalable if necessary
@@ -1725,6 +1731,13 @@ class Application
     end
   end
 
+  # TODO: vladi (uhuru): Do not use the windows category, use the platform attribute
+  def is_windows_app
+    self.component_instances.any? do |component_instance|
+      component_instance.get_cartridge.categories.include?('windows')
+    end
+  end
+
   def update_requirements(cartridges, replacements, overrides, init_git_url=nil, user_env_vars=nil)
     current = group_instances_with_overrides
     connections, updated = elaborate(cartridges, overrides)
@@ -1788,7 +1801,16 @@ class Application
         app_dns_gear_id = gear_id.to_s
       end
 
-      init_gear_op = InitGearOp.new(group_instance_id: ginst_id, gear_id: gear_id,
+      # TODO: vladi (uhuru): Replace the kernel category with a platform attribute
+
+      is_windows_group = comp_specs.any? do |comp_spec|
+        cats = CartridgeCache.find_cartridge(comp_spec["cart"], self).categories
+        cats.include?("windows")
+      end
+
+      kernel = is_windows_group ? 'Windows' : 'Linux'
+
+      init_gear_op = InitGearOp.new(group_instance_id: ginst_id, kernel: kernel, gear_id: gear_id,
                                     gear_size: gear_size, addtl_fs_gb: additional_filesystem_gb,
                                     comp_specs: gear_comp_specs[gear_id], host_singletons: host_singletons,
                                     app_dns: app_dns, pre_save: (not self.persisted?))
@@ -2013,7 +2035,8 @@ class Application
         end
 
         git_url = nil
-        git_url = init_git_url if gear_id == deploy_gear_id && cartridge.is_deployable?
+        # TODO: vladi (uhuru) make sure this change is correct
+        git_url = init_git_url if gear_id == deploy_gear_id && (cartridge.is_deployable? or cartridge.is_web_proxy?)
         add_component_op = AddCompOp.new(gear_id: gear_id, comp_spec: comp_spec, init_git_url: git_url, prereq: new_component_op_id + [prereq_id])
         ops << add_component_op
         component_ops[comp_spec][:adds] << add_component_op
