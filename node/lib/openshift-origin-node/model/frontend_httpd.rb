@@ -179,7 +179,7 @@ module OpenShift
         @namespace = container.namespace
 
         # TODO: vladi (uhuru): Make sure this change is OK
-        @solo_web_proxy = container.cartridge_model.solo_web_proxy?
+        @standalone_web_proxy = container.cartridge_model.standalone_web_proxy?
 
         # this is ONLY used when invoking "connect" so the app uuid can be stored
         # in the nodes db, so it can be added to the node openshift_log (access log)
@@ -340,7 +340,7 @@ module OpenShift
         # TODO: vladi (uhuru): Make sure this change is OK
         paths_to_update = {}
         elems.each do |path, uri, options|
-          if options["target_update"] && !@solo_web_proxy
+          if options["target_update"] && !@standalone_web_proxy
             paths_to_update[path]=uri
           end
         end
