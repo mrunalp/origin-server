@@ -9,31 +9,20 @@ class Command
   def import_node(options)
     env!(options)
 
-    # TODO: vladi (uhuru): modify method so it uses the broker conf list of available platforms
+    # TODO: vladi (uhuru): remove this comment
+    carts = []
 
     if options.node
       carts = OpenShift::ApplicationContainerProxy.instance(options.node)
     else
-      carts_linux = []
-      carts_windows = []
+      node_platforms = Rails.configuration.openshift[:node_platforms]
 
-      linux_found = true
-
-      begin
-        carts_linux = OpenShift::ApplicationContainerProxy.find_one(nil, 'Linux').get_available_cartridges
-      rescue OpenShift::NodeUnavailableException
-        linux_found = false
-      end
-
-      begin
-        carts_windows = OpenShift::ApplicationContainerProxy.find_one(nil, 'Windows').get_available_cartridges
-      rescue OpenShift::NodeUnavailableException => e
-        unless linux_found
-          raise e
+      node_plaforms.each do |platform|
+        node_carts = OpenShift::ApplicationContainerProxy.find_one(nil, platform).get_available_cartridges
+        node_carts.each do |cart|
+          carts << cart unless carts.any? {|existing_cart| existing_cart.name == cart.name }
         end
       end
-
-      carts = carts_linux + carts_windows
     end
 
     types = CartridgeType.update_from(carts, nil, options.force)

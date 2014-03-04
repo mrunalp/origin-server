@@ -90,7 +90,7 @@ module OpenShift
         template = locations.find {|l| File.directory?(l)}
 
         # TODO: vladi (uhuru): Verify that this change is OK; also we could rsync directly to template destination
-        if @container.cartridge_model.solo_web_proxy? and @container.gear_registry.entries[:web]
+        if @container.cartridge_model.standalone_web_proxy? and @container.gear_registry.entries[:web]
           remote_web_proxy = @container.gear_registry.entries[:web].values.first
 
           unless remote_web_proxy

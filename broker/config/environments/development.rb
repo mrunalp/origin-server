@@ -103,6 +103,7 @@ Broker::Application.configure do
     :allow_multiple_haproxy_on_node => conf.get_bool('ALLOW_MULTIPLE_HAPROXY_ON_NODE', "true"),
     :syslog_enabled => conf.get_bool('SYSLOG_ENABLED', 'false'),
     :app_template_for => OpenShift::Controller::Configuration.parse_url_hash(conf.get('DEFAULT_APP_TEMPLATES', nil)),
+    :node_platforms => OpenShift::Controller::Configuration.parse_list(conf.get('NODE_PLATFORMS', 'linux')),
   }
 
   config.auth = {

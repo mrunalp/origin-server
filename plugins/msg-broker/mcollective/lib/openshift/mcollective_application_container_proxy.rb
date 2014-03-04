@@ -91,15 +91,15 @@ module OpenShift
       #
       # NOTES:
       # * Uses rpc_find_one() method
-      # TODO: vladi (uhuru): modify method so it uses a platform fact, not kernel
-      def self.find_one_impl(node_profile=nil, kernel='Linux')
-        current_server = rpc_find_one(node_profile, kernel)
+      # TODO: vladi (uhuru): remove this comment
+      def self.find_one_impl(node_profile=nil, platform='Linux')
+        current_server = rpc_find_one(node_profile, platform)
 
         if current_server
           Rails.logger.debug "DEBUG: find_one_impl: current_server: #{current_server}"
           return current_server
         else
-          server_infos = find_all_available_impl({:node_profile => node_profile, :kernel => kernel})
+          server_infos = find_all_available_impl({:node_profile => node_profile, :platform => platform})
           Rails.logger.debug "DEBUG: find_one_impl: Returning #{server_infos[0][0]} from a list of #{server_infos.length} servers"
           # we are returning the server for the first server_info
           return server_infos[0][0]
@@ -2922,8 +2922,8 @@ module OpenShift
         gear_exists_in_district = false
 
         node_profile = opts[:node_profile]
-        # TODO: vladi (uhuru): modify method so it uses a platform fact, not kernel
-        kernel = opts[:kernel]
+        # TODO: vladi (uhuru): remove this comment
+        platform = opts[:platform]
         district_uuid = opts[:disrict_uuid]
         least_preferred_servers = opts[:least_preferred_servers]
         restricted_servers = opts[:restricted_servers]
@@ -2960,12 +2960,12 @@ module OpenShift
         # First find the most available nodes and match
         # to their districts.  Take out the almost full nodes if possible and return one of
         # the nodes within a district with a lot of space.
-        # TODO: vladi (uhuru): modify method so it uses a platform fact, not kernel
+        # TODO: vladi (uhuru): remove this comment
         additional_filters = [{:fact => "active_capacity",
                                :value => '100',
                                :operator => "<"},
                               {:fact => "kernel",
-                               :value => "(?i:#{kernel})",
+                               :value => "(?i:#{platform})",
                                :operator => "=~"}]
 
         if require_specific_district || require_district
@@ -3144,14 +3144,14 @@ module OpenShift
       # * Query facters from every node and filter on server side
       # * uses MCollective::RPC::Client
       #
-      # TODO: vladi (uhuru): modify method so it uses a platform fact, not kernel
-      def self.rpc_find_one(node_profile=nil, kernel='Linux')
+      # TODO: vladi (uhuru): remove this comment
+      def self.rpc_find_one(node_profile=nil, platform='Linux')
         current_server = nil
         additional_filters = []
 
-        # TODO: vladi (uhuru): modify method so it uses a platform fact, not kernel
+        # TODO: vladi (uhuru): remove this comment
         additional_filters.push({:fact => "kernel",
-                                 :value => "(?i:#{kernel})",
+                                 :value => "(?i:#{platform})",
                                  :operator => "=~"})
 
         if Rails.configuration.msg_broker[:node_profile_enabled]
