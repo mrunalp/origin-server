@@ -71,31 +71,7 @@ module OpenShift
               raise ::OpenShift::Runtime::Utils::Sdk.translate_out_for_client(message, :error)
             end
           elsif cartridge.deployable?
-            deployment_datetime = latest_deployment_datetime
-            deployment_metadata = deployment_metadata_for(deployment_datetime)
-
-            # only do this if we've never activated
-            if deployment_metadata.activations.empty?
-              prepare(deployment_datetime: deployment_datetime)
-
-              # prepare modifies the deployment metadata - need to reload
-              deployment_metadata.load
-
-              application_repository = ApplicationRepository.new(self)
-              git_ref = 'master'
-              git_sha1 = application_repository.get_sha1(git_ref)
-              deployment_metadata.git_sha1 = git_sha1
-              deployment_metadata.git_ref = git_ref
-
-              deployments_dir = PathUtils.join(@container_dir, 'app-deployments')
-              set_rw_permission_R(deployments_dir)
-              reset_permission_R(deployments_dir)
-
-              deployment_metadata.record_activation
-              deployment_metadata.save
-
-              update_current_deployment_datetime_symlink(deployment_datetime)
-            end
+            setup_deployment(latest_deployment_datetime, deployment_metadata_for(deployment_datetime))
           end
 
           output << @cartridge_model.post_configure(cart_name)
@@ -111,6 +87,34 @@ module OpenShift
           end
 
           output
+        end
+
+        def setup_deployment(deployment_datetime, deployment_metadata)
+          deployment_datetime = latest_deployment_datetime
+          deployment_metadata = deployment_metadata_for(deployment_datetime)
+
+          # only do this if we've never activated
+          if deployment_metadata.activations.empty?
+            prepare(deployment_datetime: deployment_datetime)
+
+            # prepare modifies the deployment metadata - need to reload
+            deployment_metadata.load
+
+            application_repository = ApplicationRepository.new(self)
+            git_ref = 'master'
+            git_sha1 = application_repository.get_sha1(git_ref)
+            deployment_metadata.git_sha1 = git_sha1
+            deployment_metadata.git_ref = git_ref
+
+            deployments_dir = PathUtils.join(@container_dir, 'app-deployments')
+            set_rw_permission_R(deployments_dir)
+            reset_permission_R(deployments_dir)
+
+            deployment_metadata.record_activation
+            deployment_metadata.save
+
+            update_current_deployment_datetime_symlink(deployment_datetime)
+          end
         end
 
         # Remove cartridge from gear
@@ -746,7 +750,7 @@ module OpenShift
 
           deployments_dir = PathUtils.join(@container_dir, 'app-deployments')
           # TODO: vladi (uhuru): Make sure adding the O option is not a problem
-          rsync_options = @cartridge_model.solo_web_proxy? ? '-rltgoDOv' : '-avz'
+          rsync_options = @cartridge_model.standalone_web_proxy? ? '-rltgoDOv' : '-avz'
           out, err, rc = run_in_container_context("rsync #{rsync_options} --rsh=/usr/bin/oo-ssh --delete-before --exclude=current ./ #{gear}:app-deployments/",
                                                   env: gear_env,
                                                   chdir: deployments_dir)
@@ -804,8 +808,8 @@ module OpenShift
           end
 
           # TODO: vladi (uhuru): Make sure this is ok
-          # (if we have a solo proxy, the call to 'with_gear_rotation' ignores a gear without a web proxy)
-          parallel_results << activate_local_gear(options) if @cartridge_model.solo_web_proxy?
+          # (if we have a solo proxy, the call to 'with_gear_rotation' ignores a gear without a web cart)
+          parallel_results << activate_local_gear(options) if @cartridge_model.standalone_web_proxy?
 
           activated_gear_uuids = []
 
@@ -1350,39 +1354,14 @@ module OpenShift
             updated_entries = gear_registry.entries
 
             # TODO: vladi (uhuru): Check if this is ok - need to initialize the solo web proxy git template after we're aware of web gears
-            if @cartridge_model.solo_web_proxy?
-
+            if @cartridge_model.standalone_web_proxy?
               repo = ApplicationRepository.new(self)
 
               unless repo.exist?
                 @cartridge_model.populate_gear_repo(@cartridge_model.web_proxy.name, nil)
               end
 
-              deployment_datetime = latest_deployment_datetime
-              deployment_metadata = deployment_metadata_for(deployment_datetime)
-
-              # only do this if we've never activated
-              if deployment_metadata.activations.empty?
-                prepare(deployment_datetime: deployment_datetime)
-
-                # prepare modifies the deployment metadata - need to reload
-                deployment_metadata.load
-
-                application_repository = ApplicationRepository.new(self)
-                git_ref = 'master'
-                git_sha1 = application_repository.get_sha1(git_ref)
-                deployment_metadata.git_sha1 = git_sha1
-                deployment_metadata.git_ref = git_ref
-
-                deployments_dir = PathUtils.join(@container_dir, 'app-deployments')
-                set_rw_permission_R(deployments_dir)
-                reset_permission_R(deployments_dir)
-
-                deployment_metadata.record_activation
-                deployment_metadata.save
-
-                update_current_deployment_datetime_symlink(deployment_datetime)
-              end
+              setup_deployment(latest_deployment_datetime, deployment_metadata_for(deployment_datetime))
             end
             # TODO: vladi (uhuru): End of change
 
@@ -1411,7 +1390,7 @@ module OpenShift
                 # copy app-deployments and make all the new gears look just like it (i.e., use --delete)
                 ssh_urls.each do |gear|
                   # TODO: vladi (uhuru): Make sure adding the O option is not a problem
-                  rsync_options = @cartridge_model.solo_web_proxy? ? '-rltgoDOv' : '-avz'
+                  rsync_options = @cartridge_model.standalone_web_proxy? ? '-rltgoDOv' : '-avz'
                   out, err, rc = run_in_container_context("rsync #{rsync_options} --delete --rsh=/usr/bin/oo-ssh app-deployments/ #{gear}:app-deployments/",
                                                           env: gear_env,
                                                           chdir: container_dir,
@@ -1473,7 +1452,7 @@ module OpenShift
         def sync_git_repo(ssh_urls, gear_env)
           OpenShift::Runtime::Threads::Parallel.map(ssh_urls, :in_threads => MAX_THREADS) do |gear|
             # TODO: vladi (uhuru): Make sure adding the O option is not a problem
-            rsync_options = @cartridge_model.solo_web_proxy? ? '-rltgoDOv' : '-avz'
+            rsync_options = @cartridge_model.standalone_web_proxy? ? '-rltgoDOv' : '-avz'
             out, err, rc = run_in_container_context("rsync #{rsync_options} --delete --exclude hooks --rsh=/usr/bin/oo-ssh git/#{application_name}.git/ #{gear}:git/#{application_name}.git/",
                                                     env: gear_env,
                                                     chdir: container_dir,
