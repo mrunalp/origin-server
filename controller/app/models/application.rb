@@ -1806,7 +1806,7 @@ class Application
       end
 
       # TODO: vladi (uhuru): remove this comment
-      platform = CartridgeCache.find_cartridge(comp_specs.first["cart"], self).platform
+      platform = CartridgeCache.find_cartridge(comp_specs.first.cartridge_name, self).platform
 
       init_gear_op = InitGearOp.new(group_instance_id: ginst_id, platform: platform, gear_id: gear_id,
                                     gear_size: gear_size, addtl_fs_gb: additional_filesystem_gb,
