@@ -68,7 +68,7 @@ module OpenShift
     end
 
     def global_identifier
-      if self.cartridge_vendor == "redhat" self.cartridge_vendor.to_s.empty?
+      if self.cartridge_vendor == "redhat" || self.cartridge_vendor.to_s.empty?
         short_name
       else
         full_name
