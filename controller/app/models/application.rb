@@ -506,26 +506,29 @@ class Application
     overrides = []
 
     # TODO: vladi: make sure this is ok
-    if is_colocatable?
-      specs.each do |spec|
-        # Cartridges can contribute overrides
-        spec.cartridge.group_overrides.each do |override|
-          if o = GroupOverride.resolve_from(specs, override)
+    specs.each do |spec|
+      # Cartridges can contribute overrides
+      spec.cartridge.group_overrides.each do |override|
+        if o = GroupOverride.resolve_from(specs, override)
+          platforms = o.components.map {|component| CartridgeCache.find_cartridge(component.cartridge_name, self).platform }.uniq
+
+          # only allow grouping if we're working with a single platform
+          if platforms.size == 1
             overrides << o.implicit
           end
         end
-
-        # Each component has an implicit override based on its scaling
-        comp = spec.component
-        overrides <<
-            if comp.is_sparse?
-              GroupOverride.new([spec]).implicit
-            elsif spec.cartridge.is_external?
-              GroupOverride.new([spec], 0, 0).implicit
-            else
-              GroupOverride.new([spec], comp.scaling.min, comp.scaling.max).implicit
-            end
       end
+
+      # Each component has an implicit override based on its scaling
+      comp = spec.component
+      overrides <<
+          if comp.is_sparse?
+            GroupOverride.new([spec]).implicit
+          elsif spec.cartridge.is_external?
+            GroupOverride.new([spec], 0, 0).implicit
+          else
+            GroupOverride.new([spec], comp.scaling.min, comp.scaling.max).implicit
+          end
     end
 
     # Overrides that are implicit to applications of this type
@@ -1738,7 +1741,7 @@ class Application
   # Determines if the application's cartridges are colocatable
   # == Returns:
   # True if the app is hosted on a single platform, false otherwise
-  def is_colocatable?()
+  def is_collocatable?()
     self.component_instances.map {|comp| comp.get_cartridge.platform }.uniq.size == 1
   end
 
@@ -2035,7 +2038,7 @@ class Application
         git_url = nil
 
         # TODO: vladi (uhuru) make sure this change is correct
-        if gear_id == deploy_gear_id and (cartridge.is_deployable? or (cartridge.is_web_proxy? and !self.is_colocatable?))
+        if gear_id == deploy_gear_id and (cartridge.is_deployable? or (cartridge.is_web_proxy? and !self.is_collocatable?))
           git_url = init_git_url
         end
 
