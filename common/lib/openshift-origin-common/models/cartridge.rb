@@ -148,7 +148,7 @@ module OpenShift
       @components.each {|comp| @_component_name_map[comp.name] = comp }
     end
 
-    def scalable_required?()
+    def scaling_required?
       @components.any { |comp| comp['Scaling']['Required'] }
     end
 
